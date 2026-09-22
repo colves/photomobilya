@@ -65,10 +65,25 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
 
         currentModel = gltf.scene;
 
-        // ADEKO Çıktısı Ölçek Düzeltmesi (x10)
-        currentModel.scale.set(10, 10, 10);
-        // Transformu güncelle ki BoundingBox hesabı doğru yapılsın
+        // Transformu güncelle ki ham (raw) BoundingBox hesabı doğru yapılsın
         currentModel.updateMatrixWorld(true);
+        const rawBox = new THREE.Box3().setFromObject(currentModel);
+        const rawSize = rawBox.getSize(new THREE.Vector3());
+        const maxRawDim = Math.max(rawSize.x, rawSize.y, rawSize.z);
+
+        // Ölçek Normalizasyonu (Auto-Scale Logic)
+        // ADEKO/Babylon GLB çıktıları genelde 0.1 ölçeklidir (örn: 2.3m tavan 0.23 birim, 6m tezgâh 0.6 birim gelir).
+        // Eğer modelin en büyük ölçüsü 2.0'dan, yüksekliği (Y) ise 0.5'ten küçükse, bunun 0.1 ölçekli
+        // bir model olduğunu varsayarak x10 ile metre standardına (1 birim = 1 metre) getiriyoruz.
+        // Diğer durumlarda (örn: Y > 2.0 ise metre ölçeğindedir) hiçbir düzeltme (x1) yapmıyoruz.
+        if (maxRawDim > 0.1 && maxRawDim < 2.0 && rawSize.y < 0.5) {
+            console.log(`[ModelLoader] ADEKO/Babylon (0.1) ölçeği tespit edildi. Normalizasyon için x10 uygulanıyor. Ham Max: ${maxRawDim.toFixed(2)}, Y: ${rawSize.y.toFixed(2)}`);
+            currentModel.scale.set(10, 10, 10);
+            currentModel.updateMatrixWorld(true);
+        } else {
+            console.log(`[ModelLoader] Model zaten metre ölçeğinde veya belirsiz. Normalizasyon atlanıyor. Ham Max: ${maxRawDim.toFixed(2)}, Y: ${rawSize.y.toFixed(2)}`);
+            // x1 kalır
+        }
 
         // Dinamik Materyal Eşlemesini Uygula
         applyMaterialsToModel(currentModel);

@@ -1,16 +1,16 @@
 # CURRENT STATUS
 
-Stage: Walkthrough Collision Optimization
+Stage: Scale Normalization
 
 Currently working on:
-Optimized the collision detection system using a Spatial Hash Grid.
+Implemented smart auto-scaling to normalize models from different sources safely.
 
 Working:
 - Shared project-memory files are in place.
 - Standalone Three.js viewer is functional with robust model loading, camera controls, and walkthrough mode.
 - ADEKO to GLB Pipeline Analysis completed (`docs/adeko-to-glb-pipeline-analysis.md`).
 - Real model structure inspected (`docs/mutfakdeneme1-model-inspection.md`).
-- Scale correction (`x10`) applied globally to ADEKO GLB models.
+- Scale correction (`x10`) applied safely via Auto-Scale logic only to models exported in 0.1 scale, preserving meter-scale models as-is.
 - Dynamic material mapping assigns PBR materials based on mesh names.
 - Configurator UI allows real-time switching of Cabinet Door and Worktop materials.
 - Configurator UI visibility bug fixed.
