@@ -31,6 +31,18 @@ Status: Active
 
 ---
 
+## D-006 — Confirmed ADEKO source export formats
+
+Decision:
+Treat ADEKO 22 Pro DWG/DXF output as the confirmed initial source for conversion testing.
+
+Reason:
+The ADEKO Save As screen confirms AutoCAD DWG and DXF choices, while a direct GLB export is not present there.
+
+Status: Active
+
+---
+
 ## D-002 — GitHub shared source of truth
 
 Decision:

@@ -21,5 +21,7 @@ Create a web-based, interactive 3D kitchen presentation experience for customers
 - Initial environment asset: `Photo Studio 1` HDRI, 1K resolution.
 - Integration target: local Kapak site at `C:\Users\Colves\OneDrive\Masaüstü\Kapak` (GitHub: `colves/kapak`).
 - ADEKO → GLB research: `docs/adeko-to-glb-pipeline-analysis.md`.
-- First-test candidate: ADEKO FBX/OBJ export (if available) → Blender → optimized GLB. ADEKO export options depend on the installed version and must be checked.
+- Confirmed source application: ADEKO 22 Pro. Its Save As screen offers AutoCAD DWG and DXF versions; direct web/GLB export is not shown there.
+- First conversion test input: export a copy as AutoCAD 2007 DWG and, if practical, AutoCAD 2007 ASCII DXF. Keep the original ADEKO drawing unchanged.
+- FBX/OBJ export has not been confirmed and must not be assumed available.
 - 3ds Max is a possible long-term batch-conversion option; it is not selected for the first prototype.
