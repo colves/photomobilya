@@ -10,8 +10,35 @@ const direction = new THREE.Vector3();
 // Mobil D-Pad durumları
 let touchUp = false, touchDown = false, touchLeft = false, touchRight = false;
 
-// Çarpışma kutuları
+// Çarpışma kutuları ve konumsal indeksleme (Spatial Hash Grid)
 let colliders = [];
+let spatialGrid = new Map();
+const CELL_SIZE = 0.5; // 0.5 metrelik hücre boyutu
+
+function getGridKeysForBox(box) {
+    const keys = [];
+    const minX = Math.floor(box.min.x / CELL_SIZE);
+    const maxX = Math.floor(box.max.x / CELL_SIZE);
+    const minZ = Math.floor(box.min.z / CELL_SIZE);
+    const maxZ = Math.floor(box.max.z / CELL_SIZE);
+
+    for (let x = minX; x <= maxX; x++) {
+        for (let z = minZ; z <= maxZ; z++) {
+            keys.push(`${x}_${z}`);
+        }
+    }
+    return keys;
+}
+
+function addBoxToGrid(box) {
+    const keys = getGridKeysForBox(box);
+    for (const key of keys) {
+        if (!spatialGrid.has(key)) {
+            spatialGrid.set(key, []);
+        }
+        spatialGrid.get(key).push(box);
+    }
+}
 
 // Bakış kontrolleri
 let isDragging = false;
@@ -66,6 +93,7 @@ export function updateWalkBoundingBox(box) {
 
 export function generateColliders(model) {
     colliders = [];
+    spatialGrid.clear();
     if (!model) return;
     
     const vA = new THREE.Vector3();
@@ -100,11 +128,6 @@ export function generateColliders(model) {
                     return;
                 }
                 
-                // L ve U tipi mutfaklarda tek bir "CAB_BODY" mesh'i tüm odayı kaplayacak
-                // devasa bir Bounding Box oluşturur. Bu da oyuncunun mutfağa girmesini engeller.
-                // Çözüm olarak: Model zaten düşük poligonlu (toplam ~5000 üçgen), bu yüzden 
-                // mesh'in genel Box3'ü yerine her bir üçgeni için küçük AABB'ler üretiyoruz.
-                
                 const geom = child.geometry;
                 const pos = geom.attributes.position;
                 const matrix = child.matrixWorld;
@@ -118,6 +141,7 @@ export function generateColliders(model) {
                         
                         const triBox = new THREE.Box3().setFromPoints([vA, vB, vC]);
                         colliders.push(triBox);
+                        addBoxToGrid(triBox);
                     }
                 } else {
                     for (let i = 0; i < pos.count; i += 3) {
@@ -127,6 +151,7 @@ export function generateColliders(model) {
                         
                         const triBox = new THREE.Box3().setFromPoints([vA, vB, vC]);
                         colliders.push(triBox);
+                        addBoxToGrid(triBox);
                     }
                 }
             }
@@ -242,9 +267,22 @@ export function updateWalkthrough() {
 }
 
 function checkCollision(playerBox) {
-    for (let i = 0; i < colliders.length; i++) {
-        if (playerBox.intersectsBox(colliders[i])) {
-            return true;
+    const keys = getGridKeysForBox(playerBox);
+    const checked = new Set();
+    
+    for (let i = 0; i < keys.length; i++) {
+        const cellBoxes = spatialGrid.get(keys[i]);
+        if (cellBoxes) {
+            for (let j = 0; j < cellBoxes.length; j++) {
+                const box = cellBoxes[j];
+                // Aynı üçgeni (kutu) birden fazla hücrede kontrol etmemek için
+                if (checked.has(box)) continue;
+                checked.add(box);
+                
+                if (playerBox.intersectsBox(box)) {
+                    return true;
+                }
+            }
         }
     }
     return false;

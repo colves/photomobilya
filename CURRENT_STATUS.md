@@ -1,9 +1,9 @@
 # CURRENT STATUS
 
-Stage: Walkthrough Collision Detection
+Stage: Walkthrough Collision Optimization
 
 Currently working on:
-Implemented a lightweight, precise collision detection system for the walkthrough mode.
+Optimized the collision detection system using a Spatial Hash Grid.
 
 Working:
 - Shared project-memory files are in place.
@@ -19,6 +19,7 @@ Working:
 - Lighting and shadow frustum dynamically scales and centers to the exact bounds of the loaded model.
 - Performance-friendly AABB collision system prevents walking through cabinets, worktops, and appliances while allowing sliding against them.
 - Collision system dynamically recalculates upon loading new models and correctly parses L/U-shaped kitchens without blocking open areas.
+- Collision checks optimized with a 2D Spatial Hash Grid (0.5m cells). Space complexity for checks reduced from O(N) to O(K) where K is local triangles.
 
 Not completed:
 - Advanced textures (PBR maps) for configurator options.
