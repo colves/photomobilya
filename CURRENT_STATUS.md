@@ -1,23 +1,22 @@
 # CURRENT STATUS
 
-Stage: Real GLB validation
+Stage: Real Model Integration & Material Planning
 
 Currently working on:
-Preparing the first real ADEKO-derived model for visual-quality and performance improvements.
+Inspected the first real ADEKO GLB model (`mutfakdeneme1.glb`) and planned dynamic material mapping.
 
 Working:
 - Shared project-memory files are in place.
-- Standalone Three.js viewer is functional with robust model loading and camera controls.
+- Standalone Three.js viewer is functional with robust model loading, camera controls, and walkthrough mode.
 - ADEKO to GLB Pipeline Analysis completed (`docs/adeko-to-glb-pipeline-analysis.md`).
-- Walkthrough mode (Gezinme Modu) is implemented.
-  - Desktop: WASD + mouse drag.
-  - Mobile: On-screen D-Pad + touch drag.
-  - Safely respects ground limits and loaded model bounding boxes.
-- A real 333 KB GLB exported through 3ds Max 2026 and the Babylon exporter loads successfully in the browser viewer.
+- Real model structure inspected (`docs/mutfakdeneme1-model-inspection.md`).
+  - Model uses layered naming (e.g., `Layer:CAB_DOORS`).
+  - Model has 0 built-in materials, requiring a dynamic Material Mapping system in code.
+  - Scale factor needs a `x10` multiplier to match real-world meters.
 
 Not completed:
-- Material mapping and presentation quality for ADEKO-derived models.
-- Real-model performance and scale validation.
+- Applying materials dynamically to the raw geometry.
+- Interactive configurator for materials.
 
 Next recommended action:
-Inspect the real GLB object/layer structure and define a material-mapping strategy for kitchen components.
+Implement a dynamic material mapping system in `viewer.js` to assign colors/textures based on mesh layer names, and apply the correct `scale` multiplier.
