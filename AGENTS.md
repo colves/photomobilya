@@ -50,3 +50,12 @@ Before large changes:
 - After completing a coherent task, verify the work, create a clear commit, and push it to GitHub when a remote is configured.
 - Do not overwrite, discard, or rewrite another agent's changes without understanding and reviewing them first.
 - If a merge conflict or unexpected change appears, stop and report it instead of guessing.
+
+## KAPAK SITE PROTECTION — HARD RULE
+
+- The Kapak site repository at `C:\Users\Colves\OneDrive\Masaüstü\Kapak` is read-only during PhotoMobilya development.
+- Do not create, edit, delete, move, install, commit, push, or otherwise modify any file in the Kapak repository.
+- This rule applies to every agent and every task, including analysis, testing, asset inspection, and integration planning.
+- A task prompt must explicitly state that the Kapak repository must not be modified.
+- This rule may be overridden only after the user writes this exact Turkish approval: `kapak dosyasında değişiklik yapmanı onaylıyorum`.
+- If the approval is absent, stop before any Kapak-site modification and ask the user for that exact approval.

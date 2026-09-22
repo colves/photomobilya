@@ -16,6 +16,21 @@ Status: Active
 
 ---
 
+## D-005 — Kapak repository protection
+
+Decision:
+Treat the Kapak repository as read-only throughout PhotoMobilya development.
+
+Reason:
+Prevent unintended changes to the existing Kapak site while the standalone viewer is being developed.
+
+Override:
+Only the user's exact approval, `kapak dosyasında değişiklik yapmanı onaylıyorum`, permits a Kapak-site modification.
+
+Status: Active
+
+---
+
 ## D-002 — GitHub shared source of truth
 
 Decision:
