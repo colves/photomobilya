@@ -20,3 +20,6 @@ Create a web-based, interactive 3D kitchen presentation experience for customers
 - Delivery: Web-based interactive 3D viewer.
 - Initial environment asset: `Photo Studio 1` HDRI, 1K resolution.
 - Integration target: local Kapak site at `C:\Users\Colves\OneDrive\Masaüstü\Kapak` (GitHub: `colves/kapak`).
+- ADEKO → GLB research: `docs/adeko-to-glb-pipeline-analysis.md`.
+- First-test candidate: ADEKO FBX/OBJ export (if available) → Blender → optimized GLB. ADEKO export options depend on the installed version and must be checked.
+- 3ds Max is a possible long-term batch-conversion option; it is not selected for the first prototype.
