@@ -3,7 +3,7 @@
 Stage: UI/UX & Visual Stability Refinements
 
 Currently working on:
-Completed removal of walkthrough mode, fixed wall flickering with hysteresis cutaway, and modernized configurator UI to match Kapak design language.
+Completed removal of walkthrough mode, fixed wall flickering with hysteresis cutaway, and modernized configurator UI to match Kapak design language. Also implemented programmatic geometry cleaning to solve Z-fighting on CAD walls.
 
 Working:
 - Shared project-memory files are in place.
@@ -16,8 +16,9 @@ Working:
 - Studio lighting setup (Key Light, Fill Light, Ambient Light) and WebGL Soft Shadows implemented.
 - HDRI integration with PMREM (via EquirectangularReflectionMapping) provides realistic PBR reflections.
 - Lighting and shadow frustum dynamically scales and centers to the exact bounds of the loaded model.
-- Dynamic Hysteresis Cutaway system hides outer walls when the camera is outside the room, completely solving Z-fighting and flickering of double-layered CAD walls without touching the raw geometry.
-- Removed deprecated Walkthrough Mode components to streamline the codebase and user experience.
+- Dynamic Hysteresis Cutaway system hides outer walls when the camera is outside the room. `wallsVisible` state securely resets on new model load.
+- Mesh Geometry Cleaner: Reads wall meshes, de-indexes them, and programmatically deletes coplanar duplicate triangles that are <5cm apart. This securely fixes Z-fighting natively without attempting risky thickness extrusion on non-manifold CAD topology.
+- Removed deprecated Walkthrough Mode components and unused D-Pad CSS to streamline the codebase and user experience.
 
 Not completed:
 - Integration of actual 3D appliance models (GLB) for oven/hob/hood to replace low-poly CAD geometries.

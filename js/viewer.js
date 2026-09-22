@@ -70,6 +70,7 @@ export async function initViewer(containerId) {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
                 wallAndCeilingMeshes = [];
+                wallsVisible = true; // YENI MODELDE SIFIRLA
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
@@ -106,6 +107,7 @@ function setupFileInput() {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
                 wallAndCeilingMeshes = [];
+                wallsVisible = true; // YENI MODELDE SIFIRLA
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();

@@ -143,36 +143,6 @@ body, html {
     display: none;
 }
 
-/* Mod Seçici */
-.mode-toggle-container {
-    margin-top: 12px;
-    display: flex;
-    gap: 4px;
-    background: #eaeaea;
-    padding: 4px;
-    border-radius: 6px;
-    pointer-events: auto;
-    width: max-content;
-}
-
-.mode-btn {
-    background: transparent;
-    border: none;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #555;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.mode-btn.active {
-    background: #fff;
-    color: #333;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
 /* Kamera Kontrolleri */
 #camera-controls {
     position: fixed;
@@ -212,49 +182,6 @@ body, html {
     background-color: #f0f0f0;
     border-color: #ccc;
 }
-
-/* Mobil Gezinme Kontrolleri (DPAD) */
-#mobile-walk-controls {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 100;
-    display: none; /* Mobilde aktif edilecek */
-    transition: opacity 0.3s ease;
-}
-
-#mobile-walk-controls.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.dpad {
-    display: grid;
-    grid-template-columns: 50px 50px 50px;
-    grid-template-rows: 50px 50px 50px;
-    gap: 4px;
-}
-
-.dpad-btn {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 8px;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #333;
-    touch-action: none;
-    user-select: none;
-}
-.dpad-btn:active {
-    background: rgba(200, 200, 200, 0.9);
-}
-
-.dpad-btn.up { grid-column: 2; grid-row: 1; }
-.dpad-btn.left { grid-column: 1; grid-row: 2; }
-.dpad-btn.right { grid-column: 3; grid-row: 2; }
-.dpad-btn.down { grid-column: 2; grid-row: 3; }
 
 /* Kapak Tarzı Konfigüratör */
 .ayar-paneli {
