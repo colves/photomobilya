@@ -2,15 +2,14 @@
 
 ## NOW
 
-- [ ] Analyze the Kapak site structure and write an integration plan
-- [ ] Choose the web viewer architecture and 3D import pipeline
+- [ ] Choose the technical architecture and setup the basic standalone Three.js environment (HTML, JS, Camera, HDRI).
 
 ## NEXT
 
-- [ ] Build the standalone interactive 3D kitchen viewer
-- [ ] Add Photo Studio 1 1K HDRI lighting
-- [ ] Integrate the reviewed viewer into the Kapak site
+- [ ] Implement ADEKO GLTF/GLB model loading logic.
+- [ ] Optimize camera controls for full room navigation.
 
 ## DONE
 
-- [x] Create shared AI memory system
+- [x] Create shared AI memory system.
+- [x] Define the project goal and integration strategy with Kapak (`docs/kapak-integration-analysis.md`).

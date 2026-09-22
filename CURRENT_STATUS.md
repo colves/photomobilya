@@ -1,20 +1,17 @@
 # CURRENT STATUS
 
-Stage: Discovery and architecture
+Stage: Project Setup & Architecture Analysis
 
 Currently working on:
-Reviewing the Kapak site and defining a standalone web 3D viewer that can be integrated later.
+Analyzing Kapak site architecture for PhotoMobilya 3D viewer integration.
 
 Working:
-
 - Shared project-memory files are in place.
-- Kapak site exists locally and is a separate Git repository.
+- Kapak site integration analysis completed (`docs/kapak-integration-analysis.md`).
 
 Not completed:
-
-- Kapak-site integration analysis
-- Choose the viewer architecture and 3D model import pipeline
-- Build the standalone viewer
+- Initial PhotoMobilya Three.js environment setup.
+- ADEKO GLTF/GLB model loading logic.
 
 Next recommended action:
-Complete the read-only Kapak-site analysis, then design the first standalone viewer milestone.
+Set up the basic standalone HTML/JS structure and Three.js environment for PhotoMobilya.
