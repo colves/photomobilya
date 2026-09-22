@@ -2,8 +2,8 @@
 
 ## NOW
 
-- [ ] Provide an initial GLB model from ADEKO (exported directly or via Blender/3ds Max).
-- [ ] Test the real ADEKO model in the PhotoMobilya viewer (Inspect and Walkthrough modes).
+- [ ] Inspect the real GLB object structure and design material mapping for kitchen components.
+- [ ] Validate scale and camera/walkthrough behavior with the real kitchen model.
 
 ## NEXT
 
@@ -18,3 +18,4 @@
 - [x] Improve model loading reliability and UI controls.
 - [x] Analyze ADEKO to GLB conversion pipeline (`docs/adeko-to-glb-pipeline-analysis.md`).
 - [x] Implement First-Person Walkthrough Mode with mobile support.
+- [x] Validate the ADEKO DWG → 3ds Max/Babylon → GLB → browser viewer conversion path with a real kitchen model.

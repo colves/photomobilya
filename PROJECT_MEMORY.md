@@ -25,3 +25,4 @@ Create a web-based, interactive 3D kitchen presentation experience for customers
 - First conversion test input: export a copy as AutoCAD 2007 DWG and, if practical, AutoCAD 2007 ASCII DXF. Keep the original ADEKO drawing unchanged.
 - FBX/OBJ export has not been confirmed and must not be assumed available.
 - 3ds Max is a possible long-term batch-conversion option; it is not selected for the first prototype.
+- A real test proved the current path works: ADEKO DWG → 3ds Max 2026 → Babylon glTF exporter → GLB → PhotoMobilya viewer. The local test file is `assets/models/mutfakdeneme1.glb` and is intentionally not tracked in Git yet.
