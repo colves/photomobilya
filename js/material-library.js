@@ -45,16 +45,25 @@ const materials = {
         name: 'Fırçalanmış Metal Kulp'
     }),
     appliance: new THREE.MeshStandardMaterial({
-        color: 0x1c1c1c,
-        roughness: 0.3,
-        metalness: 0.7,
+        color: 0x111111,
+        roughness: 0.15,
+        metalness: 0.85,
+        envMapIntensity: 1.2,
         name: 'Koyu Metal Beyaz Eşya'
     }),
-    sinkArmature: new THREE.MeshStandardMaterial({
-        color: 0xdddddd,
-        roughness: 0.2,
+    applianceGlass: new THREE.MeshStandardMaterial({
+        color: 0x050505,
+        roughness: 0.05,
         metalness: 0.9,
-        name: 'Metal Eviye Batarya'
+        envMapIntensity: 1.5,
+        name: 'Fırın Camı / Siyah Cam'
+    }),
+    sinkArmature: new THREE.MeshStandardMaterial({
+        color: 0xe0e0e0,
+        roughness: 0.25,
+        metalness: 0.95,
+        envMapIntensity: 1.5,
+        name: 'Paslanmaz Çelik Eviye'
     }),
     glass: new THREE.MeshPhysicalMaterial({
         color: 0xffffff,
@@ -137,7 +146,13 @@ export function getMaterialForMeshName(meshName) {
     if (name.includes('PLINTH')) return materials.plinth;
     if (name.includes('HANDLE') || name.includes('KNOB')) return materials.handle;
     
-    if (name.includes('APP_BODY') || name.includes('APPLIANCE')) return materials.appliance;
+    if (name.includes('APP_BODY') || name.includes('APPLIANCE')) {
+        // Dacă fırın veya siyah cam yüzeyi belirtecek bir ad varsa:
+        if (name.includes('GLASS') || name.includes('SCREEN') || name.includes('OVEN')) {
+            return materials.applianceGlass;
+        }
+        return materials.appliance;
+    }
     if (name.includes('SINK') || name.includes('ARMATURE')) return materials.sinkArmature;
     
     if (name.includes('GLASS')) return materials.glass;

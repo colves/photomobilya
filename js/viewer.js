@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
 import { loadModel, setBlobUrl } from './model-loader.js';
-import { initWalkthrough, setWalkMode, updateWalkthrough } from './walkthrough-controller.js';
 import { updateMaterialVariant } from './material-library.js';
 
 let scene, camera, renderer, controls, mainLight;
@@ -48,10 +47,6 @@ export async function initViewer(containerId) {
         controls.maxPolarAngle = Math.PI / 2 - 0.05; 
         controls.target.set(0, 1, 0); 
 
-        // 5. Gezinme Modu (Walkthrough) Başlatma
-        initWalkthrough(camera, renderer, controls);
-        setupModeToggles();
-
         // 6. HDRI Ortam Işığı Yükleme ve Stüdyo Işıkları
         updateLoaderText("Ortam ışığı yükleniyor...");
         await loadHDRI('assets/hdr/photo_studio_01_1k.hdr');
@@ -73,6 +68,16 @@ export async function initViewer(containerId) {
             const success = await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
             if (success) {
                 updateDynamicLighting(success.center, success.maxDim);
+                roomBoundingBox = success.boundingBox;
+                wallAndCeilingMeshes = [];
+                scene.traverse((child) => {
+                    if (child.isMesh) {
+                        const name = child.name.toUpperCase();
+                        if (name.includes('WALL') || name.includes('CEILING')) {
+                            wallAndCeilingMeshes.push(child);
+                        }
+                    }
+                });
                 showConfigPanel();
             }
         } else {
@@ -84,25 +89,6 @@ export async function initViewer(containerId) {
 
     } catch (error) {
         showError("3D Sahne başlatılırken hata oluştu: " + error.message);
-    }
-}
-
-function setupModeToggles() {
-    const btnInspect = document.getElementById('btn-mode-inspect');
-    const btnWalk = document.getElementById('btn-mode-walk');
-    
-    if (btnInspect && btnWalk) {
-        btnInspect.addEventListener('click', () => {
-            btnInspect.classList.add('active');
-            btnWalk.classList.remove('active');
-            setWalkMode(false);
-        });
-        
-        btnWalk.addEventListener('click', () => {
-            btnWalk.classList.add('active');
-            btnInspect.classList.remove('active');
-            setWalkMode(true);
-        });
     }
 }
 
@@ -118,6 +104,16 @@ function setupFileInput() {
             const success = await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
             if (success) {
                 updateDynamicLighting(success.center, success.maxDim);
+                roomBoundingBox = success.boundingBox;
+                wallAndCeilingMeshes = [];
+                scene.traverse((child) => {
+                    if (child.isMesh) {
+                        const name = child.name.toUpperCase();
+                        if (name.includes('WALL') || name.includes('CEILING')) {
+                            wallAndCeilingMeshes.push(child);
+                        }
+                    }
+                });
                 showConfigPanel();
             }
             
@@ -128,16 +124,16 @@ function setupFileInput() {
 }
 
 function setupConfigPanel() {
-    const configBtns = document.querySelectorAll('.config-btn');
+    const configBtns = document.querySelectorAll('.renk-btn');
     
     configBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const target = e.target;
+            const target = e.currentTarget; // Ensure we get the button, not its children
             const type = target.dataset.type;
             const val = target.dataset.val;
             
             // UI güncellemesi
-            const siblings = target.parentElement.querySelectorAll('.config-btn');
+            const siblings = target.parentElement.querySelectorAll('.renk-btn');
             siblings.forEach(s => s.classList.remove('active'));
             target.classList.add('active');
             
@@ -264,6 +260,28 @@ function removeTemporaryGeometry() {
     tempGeometries = [];
 }
 
+let roomBoundingBox = null;
+let wallAndCeilingMeshes = [];
+let wallsVisible = true;
+
+function updateCutaway() {
+    if (!roomBoundingBox || wallAndCeilingMeshes.length === 0) return;
+
+    // Histerezisli Cutaway (Görünürlük) Mantığı:
+    // Kamera odanın dışındayken duvarlar ve tavan görüşü kapatmamalı.
+    // Titreşimi önlemek için; dışarı çıkarken mesafe > 1.0m olana kadar gizleme,
+    // içeri girerken tam olarak içeri girene kadar (mesafe = 0) gösterme.
+    const dist = roomBoundingBox.distanceToPoint(camera.position);
+
+    if (wallsVisible && dist > 1.0) {
+        wallsVisible = false;
+        wallAndCeilingMeshes.forEach(m => m.visible = false);
+    } else if (!wallsVisible && dist === 0) {
+        wallsVisible = true;
+        wallAndCeilingMeshes.forEach(m => m.visible = true);
+    }
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -272,6 +290,6 @@ function onWindowResize() {
 
 function animate() {
     controls.update();
-    updateWalkthrough();
+    updateCutaway();
     renderer.render(scene, camera);
 }

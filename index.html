@@ -43,12 +43,6 @@
             <label for="model-upload" class="model-upload-btn">Model Seç (.glb)</label>
             <input type="file" id="model-upload" accept=".glb" class="hidden-input">
         </div>
-        
-        <!-- Mod Değiştirici -->
-        <div class="mode-toggle-container">
-            <button id="btn-mode-inspect" class="mode-btn active" title="İnceleme Modu">İncele</button>
-            <button id="btn-mode-walk" class="mode-btn" title="Gezinme Modu">Gezin</button>
-        </div>
     </div>
 
     <!-- Kamera Kontrolleri (İnceleme modunda görünür) -->
@@ -59,38 +53,52 @@
         <button id="btn-view-top" class="cam-btn" title="Üstten Görünüm">Üst</button>
     </div>
 
-    <!-- Mobil Gezinme Kontrolleri (Gezinme modunda mobilde görünür) -->
-    <div id="mobile-walk-controls" class="hidden">
-        <div class="dpad">
-            <button id="btn-walk-up" class="dpad-btn up">▲</button>
-            <button id="btn-walk-left" class="dpad-btn left">◀</button>
-            <button id="btn-walk-down" class="dpad-btn down">▼</button>
-            <button id="btn-walk-right" class="dpad-btn right">▶</button>
-        </div>
-    </div>
-
     <!-- Malzeme Seçenekleri Paneli -->
-    <div id="config-panel" class="hidden">
-        <h3>Malzeme Seçenekleri</h3>
-        
-        <div class="config-group">
-            <label>Kapak Rengi:</label>
-            <div class="config-options" id="door-options">
-                <button class="config-btn active" data-type="door" data-val="white">Beyaz</button>
-                <button class="config-btn" data-type="door" data-val="wood">Ahşap</button>
-                <button class="config-btn" data-type="door" data-val="anthracite">Antrasit</button>
-            </div>
-        </div>
+    <aside id="config-panel" class="hidden ayar-paneli">
+        <div class="ayar-govde">
+            <section class="ayar-bolum">
+                <p class="ayar-no"><span>01</span> / YÜZEY</p>
+                <div class="ayar-bolum-basi">
+                    <h2 class="ayar-baslik">Kapak Rengi</h2>
+                </div>
+                <div class="renk-secenekleri" id="door-options">
+                    <button class="renk-btn active" data-type="door" data-val="white">
+                        <span class="renk-nokta" style="background-color: #eaeaea;"></span>
+                        <span class="renk-ad">Beyaz</span>
+                    </button>
+                    <button class="renk-btn" data-type="door" data-val="wood">
+                        <span class="renk-nokta" style="background-color: #a47c54;"></span>
+                        <span class="renk-ad">Ahşap</span>
+                    </button>
+                    <button class="renk-btn" data-type="door" data-val="anthracite">
+                        <span class="renk-nokta" style="background-color: #2b2b2b;"></span>
+                        <span class="renk-ad">Antrasit</span>
+                    </button>
+                </div>
+            </section>
 
-        <div class="config-group">
-            <label>Tezgâh Görünümü:</label>
-            <div class="config-options" id="worktop-options">
-                <button class="config-btn active" data-type="worktop" data-val="dark-stone">Koyu Taş</button>
-                <button class="config-btn" data-type="worktop" data-val="light-stone">Açık Taş</button>
-                <button class="config-btn" data-type="worktop" data-val="white-marble">Beyaz Mermer</button>
-            </div>
+            <section class="ayar-bolum">
+                <p class="ayar-no"><span>02</span> / TEZGÂH</p>
+                <div class="ayar-bolum-basi">
+                    <h2 class="ayar-baslik">Tezgâh Görünümü</h2>
+                </div>
+                <div class="renk-secenekleri" id="worktop-options">
+                    <button class="renk-btn active" data-type="worktop" data-val="dark-stone">
+                        <span class="renk-nokta" style="background-color: #222222;"></span>
+                        <span class="renk-ad">Koyu Taş</span>
+                    </button>
+                    <button class="renk-btn" data-type="worktop" data-val="light-stone">
+                        <span class="renk-nokta" style="background-color: #cccccc;"></span>
+                        <span class="renk-ad">Açık Taş</span>
+                    </button>
+                    <button class="renk-btn" data-type="worktop" data-val="white-marble">
+                        <span class="renk-nokta" style="background-color: #fafafa; border: 1px solid #ddd;"></span>
+                        <span class="renk-ad">Beyaz Mermer</span>
+                    </button>
+                </div>
+            </section>
         </div>
-    </div>
+    </aside>
 
     <!-- 3D Görüntüleyici Konteyneri -->
     <div id="viewer-container"></div>

@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { showLoader, hideLoader, updateLoaderText, showError } from './loader.js';
 import { setupCameraControls, hideCameraControls } from './camera-controller.js';
-import { updateWalkBoundingBox, generateColliders } from './walkthrough-controller.js';
 import { applyMaterialsToModel } from './material-library.js';
 
 let currentModel = null;
@@ -93,10 +92,6 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         // Kamerayı ve modeli ayarla
         const modelBoxData = adjustCameraToModel(currentModel, camera, controls);
         
-        // Çarpışma kutularını (Collider) üret (Model pozisyonlandıktan sonra)
-        currentModel.updateMatrixWorld(true);
-        generateColliders(currentModel);
-
         // Kamera kontrollerini başlat
         setupCameraControls(camera, controls, modelBoxData);
 
@@ -157,8 +152,5 @@ function adjustCameraToModel(model, camera, controls) {
     
     controls.update();
 
-    // Gezinme modu için sınırları (box) gönder
-    updateWalkBoundingBox(newBox);
-
-    return { center: newCenter, maxDim, initialCameraZ: cameraZ };
+    return { center: newCenter, maxDim, initialCameraZ: cameraZ, boundingBox: newBox };
 }
