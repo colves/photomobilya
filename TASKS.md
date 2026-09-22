@@ -21,3 +21,4 @@
 - [x] Implement dynamic Material Mapping based on mesh layer names.
 - [x] Apply scale correction (`x10`) to the loaded real model.
 - [x] Build interactive Material Configurator UI.
+- [x] Enhance lighting and shadow mapping for studio rendering quality.

@@ -32,6 +32,11 @@ export async function initViewer(containerId) {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.0;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
+        
+        // Gölge ayarları (Performans dostu PCFSoft)
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
         container.appendChild(renderer.domElement);
 
         // 4. Kontroller (OrbitControls)
@@ -47,9 +52,10 @@ export async function initViewer(containerId) {
         initWalkthrough(camera, renderer, controls);
         setupModeToggles();
 
-        // 6. HDRI Ortam Işığı Yükleme
+        // 6. HDRI Ortam Işığı Yükleme ve Stüdyo Işıkları
         updateLoaderText("Ortam ışığı yükleniyor...");
         await loadHDRI('assets/hdr/photo_studio_01_1k.hdr');
+        setupLighting();
 
         // 7. Geçici Sahne Geometrisi
         createTemporaryGeometry();
@@ -165,6 +171,41 @@ async function loadHDRI(path) {
             }
         );
     });
+}
+
+function setupLighting() {
+    // HDRI zaten 'scene.environment' olarak atandığı için PBR materyaller
+    // yansıma ve genel aydınlatmayı oradan alacaktır.
+    // Fiziksel derinlik (gölge) katmak için stüdyo ışıkları ekliyoruz:
+
+    // 1. Ana Işık (Key Light) - Güneş veya pencere yönünden gelen güçlü ışık
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    mainLight.position.set(5, 8, 5); // Üst çaprazdan
+    mainLight.castShadow = true;
+
+    // Gölge kalitesi (Performans için 1024 yeterlidir, çok yumuşak sınır istersen PCFSoftShadowMap devrede)
+    mainLight.shadow.mapSize.width = 1024;
+    mainLight.shadow.mapSize.height = 1024;
+    mainLight.shadow.bias = -0.0005; // Z-fighting/shadow acne önleyici
+
+    // Gölge kamera sınırlarını mutfak boyutlarına uygun ayarla
+    mainLight.shadow.camera.near = 0.5;
+    mainLight.shadow.camera.far = 25;
+    mainLight.shadow.camera.left = -6;
+    mainLight.shadow.camera.right = 6;
+    mainLight.shadow.camera.top = 6;
+    mainLight.shadow.camera.bottom = -6;
+    scene.add(mainLight);
+
+    // 2. Dolgu Işığı (Fill Light) - Gölgeleri yumuşatmak için ters yönden zayıf ışık
+    const fillLight = new THREE.DirectionalLight(0xe4eaf5, 0.5); // Hafif soğuk ton
+    fillLight.position.set(-5, 4, -5);
+    fillLight.castShadow = false;
+    scene.add(fillLight);
+
+    // 3. Genel Ambiyans Işığı - Kapalı alanlar tamamen siyah kalmasın diye
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambientLight);
 }
 
 function createTemporaryGeometry() {

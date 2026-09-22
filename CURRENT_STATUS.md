@@ -1,9 +1,9 @@
 # CURRENT STATUS
 
-Stage: Material Configurator Bug Fix
+Stage: Studio Lighting & Shadow Optimization
 
 Currently working on:
-Fixed the Material Options panel visibility issue.
+Improved lighting and shadows for a photorealistic studio rendering feel.
 
 Working:
 - Shared project-memory files are in place.
@@ -12,8 +12,10 @@ Working:
 - Real model structure inspected (`docs/mutfakdeneme1-model-inspection.md`).
 - Scale correction (`x10`) applied globally to ADEKO GLB models.
 - Dynamic material mapping assigns PBR materials based on mesh names.
-- Configurator UI allows real-time switching of Cabinet Door and Worktop materials without reloading.
-- Configurator UI visibility bug fixed (ensured robust CSS rules and boolean success tracking in loadModel).
+- Configurator UI allows real-time switching of Cabinet Door and Worktop materials.
+- Configurator UI visibility bug fixed.
+- Studio lighting setup (Key Light, Fill Light, Ambient Light) and WebGL Soft Shadows implemented.
+- HDRI integration with PMREM (via EquirectangularReflectionMapping) provides realistic PBR reflections.
 
 Not completed:
 - Refined physical constraints (collision detection) in Walkthrough mode.
