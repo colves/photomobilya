@@ -13,4 +13,6 @@
 - [x] Create shared AI memory system.
 - [x] Setup the basic standalone Three.js environment.
 - [x] Implement ADEKO GLTF/GLB model loading logic.
-- [x] Optimize camera controls for full room navigation based on loaded model size.
+- [x] Improve model loading reliability (memory management, centering, error recovery).
+- [x] Add smooth predefined camera views (Front, Side, Top, Reset) for loaded models.
+- [x] Optimize performance and renderer quality.

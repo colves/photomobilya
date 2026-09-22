@@ -143,6 +143,46 @@ body, html {
     display: none;
 }
 
+/* Kamera Kontrolleri */
+#camera-controls {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 8px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#camera-controls.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 20px);
+}
+
+.cam-btn {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color: #333;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cam-btn:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+
 /* Mobil Uyumluluk */
 @media (max-width: 600px) {
     #info-overlay {

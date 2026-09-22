@@ -30,6 +30,7 @@
         <div class="error-box">
             <h2>Bir Hata Oluştu</h2>
             <p id="error-text"></p>
+            <button id="btn-error-close" class="cam-btn" style="margin-top:16px;">Tamam</button>
         </div>
     </div>
 
@@ -40,8 +41,16 @@
         <p>Görüntüyü sürükleyerek inceleyin.</p>
         <div class="model-picker-container">
             <label for="model-upload" class="model-upload-btn">Model Seç (.glb)</label>
-            <input type="file" id="model-upload" accept=".glb,model/gltf-binary" class="hidden-input">
+            <input type="file" id="model-upload" accept=".glb" class="hidden-input">
         </div>
+    </div>
+
+    <!-- Kamera Kontrolleri (Sadece model yüklendiğinde görünür) -->
+    <div id="camera-controls" class="hidden">
+        <button id="btn-view-reset" class="cam-btn" title="Görünümü Sıfırla">Sıfırla</button>
+        <button id="btn-view-front" class="cam-btn" title="Ön Görünüm">Ön</button>
+        <button id="btn-view-side" class="cam-btn" title="Yan Görünüm">Yan</button>
+        <button id="btn-view-top" class="cam-btn" title="Üstten Görünüm">Üst</button>
     </div>
 
     <!-- 3D Görüntüleyici Konteyneri -->

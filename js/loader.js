@@ -33,3 +33,11 @@ export function showError(message) {
     }
     console.error("Uygulama Hatası:", message);
 }
+
+// Hata ekranını kapatma
+const btnErrorClose = document.getElementById('btn-error-close');
+if (btnErrorClose && errorScreenEl) {
+    btnErrorClose.addEventListener('click', () => {
+        errorScreenEl.classList.add('hidden');
+    });
+}

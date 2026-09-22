@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
-import { loadModel } from './model-loader.js';
+import { loadModel, setBlobUrl } from './model-loader.js';
 
 let scene, camera, renderer, controls;
 let tempGeometries = [];
@@ -25,10 +25,13 @@ export async function initViewer(containerId) {
 
         // 3. Renderer
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-        renderer.setPixelRatio(window.devicePixelRatio);
+        // Performans için piksel oranını sınırla (özellikle mobil cihazlarda)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.0;
+        // PBR malzemelerin doğru görünmesi için renk uzayını ayarla
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         container.appendChild(renderer.domElement);
 
         // 4. Kontroller (OrbitControls)
@@ -78,6 +81,7 @@ function setupFileInput() {
             if (!file) return;
 
             const fileUrl = URL.createObjectURL(file);
+            setBlobUrl(fileUrl);
             await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
             
             // Aynı dosyayı tekrar seçebilmek için input'u sıfırla

@@ -1,21 +1,47 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { showLoader, hideLoader, updateLoaderText, showError } from './loader.js';
+import { setupCameraControls, hideCameraControls } from './camera-controller.js';
 
 let currentModel = null;
+let currentObjectUrl = null;
 const gltfLoader = new GLTFLoader();
 
 /**
- * URL'den veya Dosyadan (Blob) GLB/GLTF modeli yükler.
- * @param {string} url - Modelin yolu veya Blob URL'i
- * @param {THREE.Scene} scene - Three.js sahnesi
- * @param {THREE.Camera} camera - Sahne kamerası
- * @param {OrbitControls} controls - Kamera kontrolleri
- * @param {Function} removeTempGeoCallback - Geçici objeleri silme fonksiyonu
+ * Eski modelin bellekten (GPU) temizlenmesi
+ */
+function disposeModel(scene, model) {
+    if (!model) return;
+    
+    scene.remove(model);
+    
+    model.traverse((child) => {
+        if (child.isMesh) {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                // Materyal dizisi olabilir
+                const materials = Array.isArray(child.material) ? child.material : [child.material];
+                materials.forEach(mat => {
+                    mat.dispose();
+                    // Dokuları (textures) temizle
+                    for (const key in mat) {
+                        if (mat[key] && mat[key].isTexture) {
+                            mat[key].dispose();
+                        }
+                    }
+                });
+            }
+        }
+    });
+}
+
+/**
+ * URL'den veya Dosyadan (Blob) GLB modeli yükler.
  */
 export async function loadModel(url, scene, camera, controls, removeTempGeoCallback) {
     showLoader();
     updateLoaderText("Model yükleniyor... %0");
+    hideCameraControls();
 
     try {
         const gltf = await new Promise((resolve, reject) => {
@@ -36,9 +62,8 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
 
         // Eskisini temizle
         if (currentModel) {
-            scene.remove(currentModel);
-            // İdeal dünyada materyalleri ve geometrileri dispose etmek gerekir 
-            // ama prototip aşamasında basit tutuyoruz.
+            disposeModel(scene, currentModel);
+            currentModel = null;
         }
 
         // Geçici objeleri sil
@@ -49,36 +74,51 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         currentModel = gltf.scene;
         scene.add(currentModel);
 
-        // Kamerayı modele göre ayarla
-        adjustCameraToModel(currentModel, camera, controls);
+        // Kamerayı ve modeli ayarla
+        const modelBoxData = adjustCameraToModel(currentModel, camera, controls);
+        
+        // Kamera kontrollerini başlat
+        setupCameraControls(camera, controls, modelBoxData);
 
         hideLoader();
 
     } catch (error) {
-        showError("Model yüklenemedi. Lütfen geçerli bir .glb/.gltf dosyası olduğundan emin olun.");
-        console.error(error);
+        showError("Model yüklenemedi. Lütfen geçerli ve tek parça bir .glb dosyası olduğundan emin olun.");
+        console.error("Yükleme Hatası:", error);
+    } finally {
+        // Blob URL temizliği (sızıntıyı önle)
+        if (currentObjectUrl === url) {
+            URL.revokeObjectURL(currentObjectUrl);
+            currentObjectUrl = null;
+        }
     }
 }
 
 /**
- * Modeli merkeze alır ve kamerayı modele göre ölçekler.
+ * Dosya seçiciden gelen Blob için URL oluşturup kaydeder (ileride silmek için).
+ */
+export function setBlobUrl(url) {
+    currentObjectUrl = url;
+}
+
+/**
+ * Modeli merkeze ve zemine alır, kamerayı ölçekler.
  */
 function adjustCameraToModel(model, camera, controls) {
-    // Modelin bounding box'ını (sınır kutusunu) hesapla
     const box = new THREE.Box3().setFromObject(model);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
+    const minY = box.min.y;
 
-    // Modeli Orijine (0,0,0) taşı
-    model.position.x += (model.position.x - center.x);
-    model.position.y += (model.position.y - center.y) + (size.y / 2); // Zemine oturt
-    model.position.z += (model.position.z - center.z);
+    // Modeli X ve Z ekseninde orijine, Y ekseninde zemine (0) oturt
+    model.position.x -= center.x;
+    model.position.y -= minY;
+    model.position.z -= center.z;
 
-    // Yeni merkezi hesapla
+    // Yeni durumun merkezini bul
     const newBox = new THREE.Box3().setFromObject(model);
     const newCenter = newBox.getCenter(new THREE.Vector3());
 
-    // En büyük boyutu bul (kamerayı ne kadar uzaklaştıracağımızı belirlemek için)
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = camera.fov * (Math.PI / 180);
     let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
@@ -86,15 +126,14 @@ function adjustCameraToModel(model, camera, controls) {
     // Güvenlik payı ekle
     cameraZ *= 1.5; 
 
-    // Kamerayı yeni pozisyona al
-    camera.position.set(newCenter.x, newCenter.y + (size.y / 2), newCenter.z + cameraZ);
-
-    // OrbitControls hedefini modelin merkezine ayarla
+    // Kamerayı varsayılan ana pozisyona al (biraz yüksekten)
+    camera.position.set(newCenter.x, newCenter.y + (maxDim * 0.5), newCenter.z + cameraZ);
     controls.target.set(newCenter.x, newCenter.y, newCenter.z);
 
-    // OrbitControls sınırlarını modele göre güncelle
-    controls.minDistance = maxDim * 0.1; // Çok fazla içine girmeyi engelle
-    controls.maxDistance = maxDim * 3;   // Çok fazla uzaklaşmayı engelle
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 3;
     
     controls.update();
+
+    return { center: newCenter, maxDim, initialCameraZ: cameraZ };
 }
