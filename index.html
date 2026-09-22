@@ -43,14 +43,30 @@
             <label for="model-upload" class="model-upload-btn">Model Seç (.glb)</label>
             <input type="file" id="model-upload" accept=".glb" class="hidden-input">
         </div>
+        
+        <!-- Mod Değiştirici -->
+        <div class="mode-toggle-container">
+            <button id="btn-mode-inspect" class="mode-btn active" title="İnceleme Modu">İncele</button>
+            <button id="btn-mode-walk" class="mode-btn" title="Gezinme Modu">Gezin</button>
+        </div>
     </div>
 
-    <!-- Kamera Kontrolleri (Sadece model yüklendiğinde görünür) -->
+    <!-- Kamera Kontrolleri (İnceleme modunda görünür) -->
     <div id="camera-controls" class="hidden">
         <button id="btn-view-reset" class="cam-btn" title="Görünümü Sıfırla">Sıfırla</button>
         <button id="btn-view-front" class="cam-btn" title="Ön Görünüm">Ön</button>
         <button id="btn-view-side" class="cam-btn" title="Yan Görünüm">Yan</button>
         <button id="btn-view-top" class="cam-btn" title="Üstten Görünüm">Üst</button>
+    </div>
+
+    <!-- Mobil Gezinme Kontrolleri (Gezinme modunda mobilde görünür) -->
+    <div id="mobile-walk-controls" class="hidden">
+        <div class="dpad">
+            <button id="btn-walk-up" class="dpad-btn up">▲</button>
+            <button id="btn-walk-left" class="dpad-btn left">◀</button>
+            <button id="btn-walk-down" class="dpad-btn down">▼</button>
+            <button id="btn-walk-right" class="dpad-btn right">▶</button>
+        </div>
     </div>
 
     <!-- 3D Görüntüleyici Konteyneri -->

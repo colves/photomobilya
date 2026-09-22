@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { showLoader, hideLoader, updateLoaderText, showError } from './loader.js';
 import { setupCameraControls, hideCameraControls } from './camera-controller.js';
+import { updateWalkBoundingBox } from './walkthrough-controller.js';
 
 let currentModel = null;
 let currentObjectUrl = null;
@@ -134,6 +135,9 @@ function adjustCameraToModel(model, camera, controls) {
     controls.maxDistance = maxDim * 3;
     
     controls.update();
+
+    // Gezinme modu için sınırları (box) gönder
+    updateWalkBoundingBox(newBox);
 
     return { center: newCenter, maxDim, initialCameraZ: cameraZ };
 }

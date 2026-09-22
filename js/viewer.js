@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
 import { loadModel, setBlobUrl } from './model-loader.js';
+import { initWalkthrough, setWalkMode, updateWalkthrough } from './walkthrough-controller.js';
 
 let scene, camera, renderer, controls;
 let tempGeometries = [];
@@ -25,12 +26,10 @@ export async function initViewer(containerId) {
 
         // 3. Renderer
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-        // Performans için piksel oranını sınırla (özellikle mobil cihazlarda)
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.0;
-        // PBR malzemelerin doğru görünmesi için renk uzayını ayarla
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         container.appendChild(renderer.domElement);
 
@@ -43,33 +42,55 @@ export async function initViewer(containerId) {
         controls.maxPolarAngle = Math.PI / 2 - 0.05; 
         controls.target.set(0, 1, 0); 
 
-        // 5. HDRI Ortam Işığı Yükleme
+        // 5. Gezinme Modu (Walkthrough) Başlatma
+        initWalkthrough(camera, renderer, controls);
+        setupModeToggles();
+
+        // 6. HDRI Ortam Işığı Yükleme
         updateLoaderText("Ortam ışığı yükleniyor...");
         await loadHDRI('assets/hdr/photo_studio_01_1k.hdr');
 
-        // 6. Geçici Sahne Geometrisi
+        // 7. Geçici Sahne Geometrisi
         createTemporaryGeometry();
 
-        // 7. Event Listeners
+        // 8. Event Listeners
         window.addEventListener('resize', onWindowResize);
         setupFileInput();
 
-        // 8. URL'den Model Yükleme Kontrolü
+        // 9. URL'den Model Yükleme Kontrolü
         const urlParams = new URLSearchParams(window.location.search);
         const modelUrl = urlParams.get('model');
         
         if (modelUrl) {
             await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
         } else {
-            // Yükleme tamamlandı (Sadece HDRI yüklendiyse)
             hideLoader();
         }
 
-        // 9. Animasyon Döngüsü
+        // 10. Animasyon Döngüsü
         renderer.setAnimationLoop(animate);
 
     } catch (error) {
         showError("3D Sahne başlatılırken hata oluştu: " + error.message);
+    }
+}
+
+function setupModeToggles() {
+    const btnInspect = document.getElementById('btn-mode-inspect');
+    const btnWalk = document.getElementById('btn-mode-walk');
+    
+    if (btnInspect && btnWalk) {
+        btnInspect.addEventListener('click', () => {
+            btnInspect.classList.add('active');
+            btnWalk.classList.remove('active');
+            setWalkMode(false);
+        });
+        
+        btnWalk.addEventListener('click', () => {
+            btnWalk.classList.add('active');
+            btnInspect.classList.remove('active');
+            setWalkMode(true);
+        });
     }
 }
 
@@ -143,5 +164,6 @@ function onWindowResize() {
 
 function animate() {
     controls.update();
+    updateWalkthrough();
     renderer.render(scene, camera);
 }
