@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { showLoader, hideLoader, updateLoaderText, showError } from './loader.js';
 import { setupCameraControls, hideCameraControls } from './camera-controller.js';
 import { updateWalkBoundingBox } from './walkthrough-controller.js';
+import { applyMaterialsToModel } from './material-library.js';
 
 let currentModel = null;
 let currentObjectUrl = null;
@@ -19,19 +20,9 @@ function disposeModel(scene, model) {
     model.traverse((child) => {
         if (child.isMesh) {
             if (child.geometry) child.geometry.dispose();
-            if (child.material) {
-                // Materyal dizisi olabilir
-                const materials = Array.isArray(child.material) ? child.material : [child.material];
-                materials.forEach(mat => {
-                    mat.dispose();
-                    // Dokuları (textures) temizle
-                    for (const key in mat) {
-                        if (mat[key] && mat[key].isTexture) {
-                            mat[key].dispose();
-                        }
-                    }
-                });
-            }
+            // Not: Yeni sistemde materyaller ortak (library) olduğu için 
+            // eski modelin silinmesi sırasında library materyallerini dispose etmemeliyiz.
+            // Bu nedenle sadece geometrileri siliyoruz.
         }
     });
 }
@@ -73,6 +64,15 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         }
 
         currentModel = gltf.scene;
+
+        // ADEKO Çıktısı Ölçek Düzeltmesi (x10)
+        currentModel.scale.set(10, 10, 10);
+        // Transformu güncelle ki BoundingBox hesabı doğru yapılsın
+        currentModel.updateMatrixWorld(true);
+
+        // Dinamik Materyal Eşlemesini Uygula
+        applyMaterialsToModel(currentModel);
+
         scene.add(currentModel);
 
         // Kamerayı ve modeli ayarla

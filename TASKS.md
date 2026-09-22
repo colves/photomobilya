@@ -2,12 +2,11 @@
 
 ## NOW
 
-- [ ] Implement dynamic Material Mapping based on mesh layer names.
-- [ ] Apply scale correction (`x10`) to the loaded real model for proper walkthrough perspective.
+- [ ] Implement variant picking or interactive material features.
 
 ## NEXT
 
-- [ ] Implement variant picking or interactive material features.
+- [ ] Implement collision detection for walkthrough mode.
 - [ ] Finalize deployment integration with Kapak site.
 
 ## DONE
@@ -17,6 +16,7 @@
 - [x] Implement ADEKO GLTF/GLB model loading logic.
 - [x] Improve model loading reliability and UI controls.
 - [x] Analyze ADEKO to GLB conversion pipeline (`docs/adeko-to-glb-pipeline-analysis.md`).
-- [x] Implement First-Person Walkthrough Mode with mobile support.
 - [x] Inspect real ADEKO GLB model structure (`docs/mutfakdeneme1-model-inspection.md`).
-- [x] Validate the ADEKO DWG → 3ds Max/Babylon → GLB → browser viewer conversion path with a real kitchen model.
+- [x] Implement First-Person Walkthrough Mode with mobile support.
+- [x] Implement dynamic Material Mapping based on mesh layer names.
+- [x] Apply scale correction (`x10`) to the loaded real model.
