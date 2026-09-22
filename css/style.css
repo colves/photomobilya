@@ -294,9 +294,6 @@ body, html {
         right: 16px;
         padding: 12px;
     }
-    #mobile-walk-controls {
-        display: block; /* Sadece mobilde dpad render edilir (hidden değilse) */
-    }
     .ayar-paneli {
         top: auto;
         bottom: 0;

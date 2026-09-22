@@ -17,7 +17,7 @@ Working:
 - HDRI integration with PMREM (via EquirectangularReflectionMapping) provides realistic PBR reflections.
 - Lighting and shadow frustum dynamically scales and centers to the exact bounds of the loaded model.
 - Dynamic Hysteresis Cutaway system hides outer walls when the camera is outside the room. `wallsVisible` state securely resets on new model load.
-- Mesh Geometry Cleaner: Reads wall meshes, de-indexes them, and programmatically deletes coplanar duplicate triangles that are <5cm apart. This securely fixes Z-fighting natively without attempting risky thickness extrusion on non-manifold CAD topology.
+- Mesh Geometry Cleaner: Reads wall meshes, de-indexes them, and securely deletes strictly cloned overlapping faces using a 1mm quantized vertex-hash map. This natively fixes internal Z-fighting on CAD surfaces while perfectly preserving thin valid walls and cutouts. Per-mesh face removal tracking and bound updates applied.
 - Removed deprecated Walkthrough Mode components and unused D-Pad CSS to streamline the codebase and user experience.
 
 Not completed:

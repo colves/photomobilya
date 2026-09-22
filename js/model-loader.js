@@ -125,10 +125,9 @@ export function setBlobUrl(url) {
  * Duvar geometrisindeki çakışan (Z-fighting) yüzleri analiz eder ve güvenle temizler.
  */
 function cleanWallGeometry(model) {
-    let duplicateFacesRemoved = 0;
-    
     model.traverse((child) => {
         if (child.isMesh && (child.name.toUpperCase().includes('WALLS') || child.name.toUpperCase().includes('CEILING'))) {
+            let duplicateFacesRemoved = 0;
             let geo = child.geometry;
             if (!geo || !geo.attributes.position) return;
             
@@ -142,43 +141,36 @@ function cleanWallGeometry(model) {
             const pos = geo.attributes.position;
             console.log(`[WallClean] ${child.name} analiz ediliyor... Toplam üçgen: ${pos.count / 3}`);
             
-            // Basit temizleme mantığı: 
-            // Aynı normal'e sahip ve merkez noktaları birbirine çok yakın (0.01 birimden az) olan üçgenleri bul
+            // Kesin ve güvenli temizleme mantığı: 
+            // Her üçgenin üç köşesini kuantize edip (quantization) sıralayarak anahtar oluştururuz.
+            // Sadece aynı 3 köşeyi paylaşan (kopya olan) yüzleri sileriz.
             const triangles = [];
+            const hashToTriangle = new Map();
+            
             for (let i = 0; i < pos.count; i += 3) {
                 const vA = new THREE.Vector3().fromBufferAttribute(pos, i);
                 const vB = new THREE.Vector3().fromBufferAttribute(pos, i + 1);
                 const vC = new THREE.Vector3().fromBufferAttribute(pos, i + 2);
                 
-                const center = new THREE.Vector3().add(vA).add(vB).add(vC).divideScalar(3);
+                // 1mm hassasiyetle kuantize edelim (0.001)
+                const q = (v) => `${Math.round(v.x * 1000)},${Math.round(v.y * 1000)},${Math.round(v.z * 1000)}`;
+                const hashA = q(vA);
+                const hashB = q(vB);
+                const hashC = q(vC);
                 
-                const cb = new THREE.Vector3().subVectors(vC, vB);
-                const ab = new THREE.Vector3().subVectors(vA, vB);
-                const normal = new THREE.Vector3().crossVectors(cb, ab).normalize();
+                // Köşe sırasından bağımsız olmak için hashleri sıralayıp birleştiriyoruz
+                const hashArray = [hashA, hashB, hashC].sort();
+                const faceHash = hashArray.join('|');
                 
-                triangles.push({
-                    index: i,
-                    center: center,
-                    normal: normal,
-                    keep: true
-                });
-            }
-            
-            // Çakışan üçgenleri bul
-            for (let i = 0; i < triangles.length; i++) {
-                if (!triangles[i].keep) continue;
-                
-                for (let j = i + 1; j < triangles.length; j++) {
-                    if (!triangles[j].keep) continue;
-                    
-                    const dist = triangles[i].center.distanceTo(triangles[j].center);
-                    if (dist < 0.05) { // 5 cm içinde
-                        const dot = triangles[i].normal.dot(triangles[j].normal);
-                        if (dot > 0.95 || dot < -0.95) { // Aynı veya zıt yöne bakıyorlar
-                            triangles[j].keep = false;
-                            duplicateFacesRemoved++;
-                        }
-                    }
+                if (hashToTriangle.has(faceHash)) {
+                    // Bu 3 köşeye sahip bir üçgen zaten var, bu tam bir kopyadır (z-fighting)!
+                    duplicateFacesRemoved++;
+                } else {
+                    hashToTriangle.set(faceHash, true);
+                    triangles.push({
+                        index: i,
+                        keep: true
+                    });
                 }
             }
             
@@ -222,6 +214,10 @@ function cleanWallGeometry(model) {
                 geo.setAttribute('position', new THREE.BufferAttribute(newPosArray, 3));
                 if (newNormalArray) geo.setAttribute('normal', new THREE.BufferAttribute(newNormalArray, 3));
                 if (newUvArray) geo.setAttribute('uv', new THREE.BufferAttribute(newUvArray, 2));
+                
+                // Geometri değiştiği için sınır kutularını güncelle
+                geo.computeBoundingBox();
+                geo.computeBoundingSphere();
                 
                 // Kalınlık eklenebilir mi analizi:
                 console.log(`[WallClean] Kalınlık (extrude) uygulanamadı çünkü kalan yüzeylerin topolojisi manifold (kapalı/sürekli) değil veya açık kenarlar barındırıyor.`);

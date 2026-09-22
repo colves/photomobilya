@@ -17,7 +17,7 @@
 - [x] Intelligent auto-scale normalization for different GLB sources
 - [x] Remove unused Walkthrough Mode and related UI
 - [x] Fix wall/ceiling flickering with Hysteresis Cutaway logic
-- [x] Solve Z-fighting from the inside via programmatic Geometry Cleaning
+- [x] Solve Z-fighting from the inside via Strict Hash-Based Geometry Deduplication
 - [x] Clean up old unused CSS (D-Pad, Walk controls)
 - [x] Upgrade Configurator UI to match Kapak's "Ayar Paneli" aesthetic
 - [x] Improve Appliance (Oven/Sink) PBR materials
