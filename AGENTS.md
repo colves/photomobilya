@@ -42,3 +42,11 @@ Before large changes:
 - Do not delete working functionality without a reason.
 - Prefer small, reversible changes.
 - If Git is available, create logical commits or checkpoints.
+
+## GIT / GITHUB COLLABORATION
+
+- Treat the Git repository and its remote GitHub branch as the shared source of truth for code.
+- Before starting a task, check for incoming changes and inspect the current working tree.
+- After completing a coherent task, verify the work, create a clear commit, and push it to GitHub when a remote is configured.
+- Do not overwrite, discard, or rewrite another agent's changes without understanding and reviewing them first.
+- If a merge conflict or unexpected change appears, stop and report it instead of guessing.

@@ -13,3 +13,15 @@ Reason:
 Allow multiple AI agents to continue the project without relying on conversation history.
 
 Status: Active
+
+---
+
+## D-002 — GitHub shared source of truth
+
+Decision:
+Use Git and GitHub to synchronize completed work between agents.
+
+Reason:
+Preserve a reviewable history, prevent lost work, and make collaboration safer.
+
+Status: Active when the repository and remote are configured.
