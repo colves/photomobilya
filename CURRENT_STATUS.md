@@ -1,19 +1,20 @@
 # CURRENT STATUS
 
-Stage: Project setup
+Stage: Discovery and architecture
 
 Currently working on:
-Shared AI memory system created.
+Reviewing the Kapak site and defining a standalone web 3D viewer that can be integrated later.
 
 Working:
 
 - Shared project-memory files are in place.
+- Kapak site exists locally and is a separate Git repository.
 
 Not completed:
 
-- Define the project goal
-- Choose the technical architecture
-- Create the first implementation task
+- Kapak-site integration analysis
+- Choose the viewer architecture and 3D model import pipeline
+- Build the standalone viewer
 
 Next recommended action:
-Define PhotoMobilya's goal and the first concrete milestone.
+Complete the read-only Kapak-site analysis, then design the first standalone viewer milestone.

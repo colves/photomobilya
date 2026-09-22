@@ -25,3 +25,27 @@ Reason:
 Preserve a reviewable history, prevent lost work, and make collaboration safer.
 
 Status: Active when the repository and remote are configured.
+
+---
+
+## D-003 — Standalone viewer first, Kapak integration last
+
+Decision:
+Develop the interactive kitchen viewer in the PhotoMobilya repository first; integrate it into the Kapak site only after the viewer is ready and reviewed.
+
+Reason:
+Keep development isolated, protect the live site, and allow the viewer to be tested independently.
+
+Status: Active
+
+---
+
+## D-004 — Initial presentation environment
+
+Decision:
+Use the `Photo Studio 1` 1K HDRI as the initial environment-lighting asset.
+
+Reason:
+Establish a consistent polished presentation look while keeping the first web prototype lightweight.
+
+Status: Active

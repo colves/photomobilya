@@ -2,13 +2,14 @@
 
 ## NOW
 
-- [ ] Define the project goal
-- [ ] Decide the first concrete milestone
+- [ ] Analyze the Kapak site structure and write an integration plan
+- [ ] Choose the web viewer architecture and 3D import pipeline
 
 ## NEXT
 
-- [ ] Choose the technical architecture
-- [ ] Create the first implementation task
+- [ ] Build the standalone interactive 3D kitchen viewer
+- [ ] Add Photo Studio 1 1K HDRI lighting
+- [ ] Integrate the reviewed viewer into the Kapak site
 
 ## DONE
 
