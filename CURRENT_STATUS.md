@@ -1,9 +1,9 @@
 # CURRENT STATUS
 
-Stage: Dynamic Studio Lighting Optimization
+Stage: Walkthrough Collision Detection
 
 Currently working on:
-Made the studio lighting and shadow maps dynamic based on the loaded model's bounding box.
+Implemented a lightweight, precise collision detection system for the walkthrough mode.
 
 Working:
 - Shared project-memory files are in place.
@@ -17,9 +17,10 @@ Working:
 - Studio lighting setup (Key Light, Fill Light, Ambient Light) and WebGL Soft Shadows implemented.
 - HDRI integration with PMREM (via EquirectangularReflectionMapping) provides realistic PBR reflections.
 - Lighting and shadow frustum dynamically scales and centers to the exact bounds of the loaded model.
+- Performance-friendly AABB collision system prevents walking through cabinets, worktops, and appliances while allowing sliding against them.
+- Collision system dynamically recalculates upon loading new models and correctly parses L/U-shaped kitchens without blocking open areas.
 
 Not completed:
-- Refined physical constraints (collision detection) in Walkthrough mode.
 - Advanced textures (PBR maps) for configurator options.
 
 Next recommended action:

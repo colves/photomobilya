@@ -10,6 +10,9 @@ const direction = new THREE.Vector3();
 // Mobil D-Pad durumları
 let touchUp = false, touchDown = false, touchLeft = false, touchRight = false;
 
+// Çarpışma kutuları
+let colliders = [];
+
 // Bakış kontrolleri
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
@@ -59,6 +62,76 @@ export function updateWalkBoundingBox(box) {
             new THREE.Vector3(4.5, 5, 4.5)
         );
     }
+}
+
+export function generateColliders(model) {
+    colliders = [];
+    if (!model) return;
+    
+    const vA = new THREE.Vector3();
+    const vB = new THREE.Vector3();
+    const vC = new THREE.Vector3();
+
+    model.traverse((child) => {
+        if (child.isMesh) {
+            const name = child.name.toUpperCase();
+            
+            // Yürümeyi engellemesi gereken mutfak öğeleri
+            if (
+                name.includes('CAB_BODY') ||
+                name.includes('CAB_DOOR') ||
+                name.includes('WORKTOP') ||
+                name.includes('APP_BODY') ||
+                name.includes('APPLIANCE') ||
+                name.includes('SINK') ||
+                name.includes('ARMATURE') ||
+                name.includes('PLINTH') ||
+                name.includes('CORNICE')
+            ) {
+                // Zemin, tavan, duvar, cam ve küçük detayları hariç tut
+                if (
+                    name.includes('GLASS') || 
+                    name.includes('HANDLE') || 
+                    name.includes('KNOB') || 
+                    name.includes('FLOOR') || 
+                    name.includes('CEILING') || 
+                    name.includes('WALL')
+                ) {
+                    return;
+                }
+                
+                // L ve U tipi mutfaklarda tek bir "CAB_BODY" mesh'i tüm odayı kaplayacak
+                // devasa bir Bounding Box oluşturur. Bu da oyuncunun mutfağa girmesini engeller.
+                // Çözüm olarak: Model zaten düşük poligonlu (toplam ~5000 üçgen), bu yüzden 
+                // mesh'in genel Box3'ü yerine her bir üçgeni için küçük AABB'ler üretiyoruz.
+                
+                const geom = child.geometry;
+                const pos = geom.attributes.position;
+                const matrix = child.matrixWorld;
+                
+                if (geom.index) {
+                    const idx = geom.index;
+                    for (let i = 0; i < idx.count; i += 3) {
+                        vA.fromBufferAttribute(pos, idx.getX(i)).applyMatrix4(matrix);
+                        vB.fromBufferAttribute(pos, idx.getX(i+1)).applyMatrix4(matrix);
+                        vC.fromBufferAttribute(pos, idx.getX(i+2)).applyMatrix4(matrix);
+                        
+                        const triBox = new THREE.Box3().setFromPoints([vA, vB, vC]);
+                        colliders.push(triBox);
+                    }
+                } else {
+                    for (let i = 0; i < pos.count; i += 3) {
+                        vA.fromBufferAttribute(pos, i).applyMatrix4(matrix);
+                        vB.fromBufferAttribute(pos, i+1).applyMatrix4(matrix);
+                        vC.fromBufferAttribute(pos, i+2).applyMatrix4(matrix);
+                        
+                        const triBox = new THREE.Box3().setFromPoints([vA, vB, vC]);
+                        colliders.push(triBox);
+                    }
+                }
+            }
+        }
+    });
 }
 
 export function setWalkMode(active) {
@@ -116,19 +189,65 @@ export function updateWalkthrough() {
     if (moveForward || moveBackward || touchUp || touchDown) velocity.z -= direction.z * speed * delta;
     if (moveLeft || moveRight || touchLeft || touchRight) velocity.x -= direction.x * speed * delta;
 
-    // Hareketi kameranın baktığı yöne (lokal eksene) göre uygula
+    // Hareketi kameranın baktığı yöne (lokal eksene) göre hesapla, ama dünya koordinatlarında uygula
+    const startPos = camera.position.clone();
+    
+    // Geçici olarak kamerayı yeni yere taşı ve farkı al
     camera.translateX(velocity.x * delta);
     camera.translateZ(velocity.z * delta);
-
-    // Y eksenini sabitle (göz hizası)
+    const targetPos = camera.position.clone();
+    camera.position.copy(startPos); // Eski yerine geri koy
+    
+    // X ve Z eksenindeki net hareket miktarı
+    let moveX = targetPos.x - startPos.x;
+    let moveZ = targetPos.z - startPos.z;
+    
+    const PLAYER_RADIUS = 0.3;
     const baseHeight = boundingBox ? boundingBox.min.y : 0;
-    camera.position.y = baseHeight + EYE_HEIGHT;
+    const playerBaseY = baseHeight;
+    const playerTopY = baseHeight + EYE_HEIGHT;
 
-    // Sınır kontrolü (Bounding Box)
-    if (boundingBox) {
-        camera.position.x = Math.max(boundingBox.min.x, Math.min(boundingBox.max.x, camera.position.x));
-        camera.position.z = Math.max(boundingBox.min.z, Math.min(boundingBox.max.z, camera.position.z));
+    // X Ekseninde Çarpışma Testi
+    if (moveX !== 0) {
+        const testBoxX = new THREE.Box3(
+            new THREE.Vector3(startPos.x + moveX - PLAYER_RADIUS, playerBaseY + 0.1, startPos.z - PLAYER_RADIUS),
+            new THREE.Vector3(startPos.x + moveX + PLAYER_RADIUS, playerTopY - 0.1, startPos.z + PLAYER_RADIUS)
+        );
+        if (checkCollision(testBoxX)) {
+            moveX = 0; // X hareketini iptal et
+        }
     }
+
+    // Z Ekseninde Çarpışma Testi
+    if (moveZ !== 0) {
+        const testBoxZ = new THREE.Box3(
+            new THREE.Vector3(startPos.x + moveX - PLAYER_RADIUS, playerBaseY + 0.1, startPos.z + moveZ - PLAYER_RADIUS),
+            new THREE.Vector3(startPos.x + moveX + PLAYER_RADIUS, playerTopY - 0.1, startPos.z + moveZ + PLAYER_RADIUS)
+        );
+        if (checkCollision(testBoxZ)) {
+            moveZ = 0; // Z hareketini iptal et
+        }
+    }
+
+    // İzin verilen hareketi uygula
+    camera.position.x = startPos.x + moveX;
+    camera.position.z = startPos.z + moveZ;
+    camera.position.y = baseHeight + EYE_HEIGHT; // Y eksenini sabitle (göz hizası)
+
+    // Genel Oda Sınır kontrolü (Bounding Box)
+    if (boundingBox) {
+        camera.position.x = Math.max(boundingBox.min.x + PLAYER_RADIUS, Math.min(boundingBox.max.x - PLAYER_RADIUS, camera.position.x));
+        camera.position.z = Math.max(boundingBox.min.z + PLAYER_RADIUS, Math.min(boundingBox.max.z - PLAYER_RADIUS, camera.position.z));
+    }
+}
+
+function checkCollision(playerBox) {
+    for (let i = 0; i < colliders.length; i++) {
+        if (playerBox.intersectsBox(colliders[i])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* ================= Bakış (Sürükleme) ================= */

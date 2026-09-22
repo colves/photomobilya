@@ -6,7 +6,6 @@
 
 ## NEXT
 
-- [ ] Implement collision detection for walkthrough mode.
 - [ ] Add real texture maps to the material configurator.
 
 ## DONE
@@ -23,3 +22,4 @@
 - [x] Build interactive Material Configurator UI.
 - [x] Enhance lighting and shadow mapping for studio rendering quality.
 - [x] Make shadow mapping and lighting bounds dynamically adapt to model sizes.
+- [x] Implement collision detection for walkthrough mode.
