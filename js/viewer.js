@@ -6,7 +6,7 @@ import { loadModel, setBlobUrl } from './model-loader.js';
 import { initWalkthrough, setWalkMode, updateWalkthrough } from './walkthrough-controller.js';
 import { updateMaterialVariant } from './material-library.js';
 
-let scene, camera, renderer, controls;
+let scene, camera, renderer, controls, mainLight;
 let tempGeometries = [];
 
 export async function initViewer(containerId) {
@@ -72,6 +72,7 @@ export async function initViewer(containerId) {
         if (modelUrl) {
             const success = await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
             if (success) {
+                updateDynamicLighting(success.center, success.maxDim);
                 showConfigPanel();
             }
         } else {
@@ -116,6 +117,7 @@ function setupFileInput() {
             setBlobUrl(fileUrl);
             const success = await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
             if (success) {
+                updateDynamicLighting(success.center, success.maxDim);
                 showConfigPanel();
             }
             
@@ -174,21 +176,16 @@ async function loadHDRI(path) {
 }
 
 function setupLighting() {
-    // HDRI zaten 'scene.environment' olarak atandığı için PBR materyaller
-    // yansıma ve genel aydınlatmayı oradan alacaktır.
-    // Fiziksel derinlik (gölge) katmak için stüdyo ışıkları ekliyoruz:
-
-    // 1. Ana Işık (Key Light) - Güneş veya pencere yönünden gelen güçlü ışık
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    mainLight.position.set(5, 8, 5); // Üst çaprazdan
+    // 1. Ana Işık (Key Light)
+    mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    mainLight.position.set(5, 8, 5); // Varsayılan geçici konum
     mainLight.castShadow = true;
 
-    // Gölge kalitesi (Performans için 1024 yeterlidir, çok yumuşak sınır istersen PCFSoftShadowMap devrede)
     mainLight.shadow.mapSize.width = 1024;
     mainLight.shadow.mapSize.height = 1024;
-    mainLight.shadow.bias = -0.0005; // Z-fighting/shadow acne önleyici
+    mainLight.shadow.bias = -0.0005;
 
-    // Gölge kamera sınırlarını mutfak boyutlarına uygun ayarla
+    // Geçici sınırlar (Model yüklenince updateDynamicLighting ile değişecek)
     mainLight.shadow.camera.near = 0.5;
     mainLight.shadow.camera.far = 25;
     mainLight.shadow.camera.left = -6;
@@ -197,15 +194,45 @@ function setupLighting() {
     mainLight.shadow.camera.bottom = -6;
     scene.add(mainLight);
 
-    // 2. Dolgu Işığı (Fill Light) - Gölgeleri yumuşatmak için ters yönden zayıf ışık
-    const fillLight = new THREE.DirectionalLight(0xe4eaf5, 0.5); // Hafif soğuk ton
+    // 2. Dolgu Işığı (Fill Light)
+    const fillLight = new THREE.DirectionalLight(0xe4eaf5, 0.5); 
     fillLight.position.set(-5, 4, -5);
     fillLight.castShadow = false;
     scene.add(fillLight);
 
-    // 3. Genel Ambiyans Işığı - Kapalı alanlar tamamen siyah kalmasın diye
+    // 3. Genel Ambiyans Işığı
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(ambientLight);
+}
+
+/**
+ * Yüklenen modelin boyutlarına göre ana ışığın pozisyonunu ve gölge alanını ayarlar.
+ */
+export function updateDynamicLighting(center, maxDim) {
+    if (!mainLight) return;
+    
+    // Işığı modelin merkezine göre çapraz üst köşeye yerleştir
+    const lightDistance = maxDim * 1.2;
+    mainLight.position.set(
+        center.x + lightDistance, 
+        center.y + lightDistance, 
+        center.z + lightDistance
+    );
+    mainLight.target.position.copy(center);
+    scene.add(mainLight.target); // Hedefin sahnede güncellenmesi için eklenmesi gerekir
+
+    // Gölge kamera sınırlarını modelin tamamını güvenle kaplayacak şekilde dinamik yap
+    const shadowArea = maxDim * 0.8;
+    mainLight.shadow.camera.left = -shadowArea;
+    mainLight.shadow.camera.right = shadowArea;
+    mainLight.shadow.camera.top = shadowArea;
+    mainLight.shadow.camera.bottom = -shadowArea;
+    
+    // Near/Far sınırları
+    mainLight.shadow.camera.near = 0.1;
+    mainLight.shadow.camera.far = maxDim * 3;
+    
+    mainLight.shadow.camera.updateProjectionMatrix();
 }
 
 function createTemporaryGeometry() {

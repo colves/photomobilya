@@ -22,3 +22,4 @@
 - [x] Apply scale correction (`x10`) to the loaded real model.
 - [x] Build interactive Material Configurator UI.
 - [x] Enhance lighting and shadow mapping for studio rendering quality.
+- [x] Make shadow mapping and lighting bounds dynamically adapt to model sizes.

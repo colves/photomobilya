@@ -1,9 +1,9 @@
 # CURRENT STATUS
 
-Stage: Studio Lighting & Shadow Optimization
+Stage: Dynamic Studio Lighting Optimization
 
 Currently working on:
-Improved lighting and shadows for a photorealistic studio rendering feel.
+Made the studio lighting and shadow maps dynamic based on the loaded model's bounding box.
 
 Working:
 - Shared project-memory files are in place.
@@ -16,6 +16,7 @@ Working:
 - Configurator UI visibility bug fixed.
 - Studio lighting setup (Key Light, Fill Light, Ambient Light) and WebGL Soft Shadows implemented.
 - HDRI integration with PMREM (via EquirectangularReflectionMapping) provides realistic PBR reflections.
+- Lighting and shadow frustum dynamically scales and centers to the exact bounds of the loaded model.
 
 Not completed:
 - Refined physical constraints (collision detection) in Walkthrough mode.

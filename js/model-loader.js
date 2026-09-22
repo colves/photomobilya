@@ -82,7 +82,7 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         setupCameraControls(camera, controls, modelBoxData);
 
         hideLoader();
-        return true;
+        return modelBoxData;
 
     } catch (error) {
         showError("Model yüklenemedi. Lütfen geçerli ve tek parça bir .glb dosyası olduğundan emin olun.");
