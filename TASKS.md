@@ -2,14 +2,15 @@
 
 ## NOW
 
-- [ ] Implement ADEKO GLTF/GLB model loading logic.
+- [ ] Test the viewer with a real, optimized ADEKO exported GLB model.
 
 ## NEXT
 
-- [ ] Optimize camera controls for full room navigation based on loaded model size.
+- [ ] Implement variant picking or interactive features (if required).
 
 ## DONE
 
 - [x] Create shared AI memory system.
-- [x] Define the project goal and integration strategy with Kapak (`docs/kapak-integration-analysis.md`).
-- [x] Choose the technical architecture and setup the basic standalone Three.js environment (HTML, JS, Camera, HDRI, Controls, UI).
+- [x] Setup the basic standalone Three.js environment.
+- [x] Implement ADEKO GLTF/GLB model loading logic.
+- [x] Optimize camera controls for full room navigation based on loaded model size.

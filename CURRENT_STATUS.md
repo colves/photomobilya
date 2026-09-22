@@ -1,21 +1,22 @@
 # CURRENT STATUS
 
-Stage: Base Viewer Implementation
+Stage: Model Loading Infrastructure
 
 Currently working on:
-First standalone Web-based 3D Kitchen Viewer Prototype.
+Added dynamic GLB/GLTF loading capabilities to the 3D Viewer.
 
 Working:
 - Shared project-memory files are in place.
-- Kapak site integration analysis completed (`docs/kapak-integration-analysis.md`).
 - Standalone Three.js environment is ready (`index.html`, `js/main.js`, `js/viewer.js`, `js/loader.js`, `css/style.css`).
-- HDRI environment lighting (`photo_studio_01_1k.hdr`) implemented.
+- HDRI environment lighting implemented.
 - OrbitControls and camera limits are configured.
-- Loading and error UI implemented.
-- Placeholder geometry added (ready to be replaced with real GLTF/GLB models).
+- GLTF/GLB models can be loaded via URL parameter (`?model=...`) or local file selection.
+- Automatic camera adjustment based on model size is implemented.
+- Loading progress and error handling are functional.
 
 Not completed:
-- ADEKO GLTF/GLB model loading logic.
+- Real ADEKO kitchen model testing.
+- UI overlay enhancements for model variants/interactions (if required).
 
 Next recommended action:
-Implement the logic to load ADEKO exported GLB/GLTF kitchen models.
+Test the viewer with a real, optimized ADEKO exported GLB model.

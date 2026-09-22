@@ -7,6 +7,12 @@ const loaderTextEl = document.getElementById('loader-text');
 const errorScreenEl = document.getElementById('error-screen');
 const errorTextEl = document.getElementById('error-text');
 
+export function showLoader() {
+    if (loaderEl) {
+        loaderEl.classList.remove('hidden');
+    }
+}
+
 export function hideLoader() {
     if (loaderEl) {
         loaderEl.classList.add('hidden');

@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
+import { loadModel } from './model-loader.js';
 
 let scene, camera, renderer, controls;
+let tempGeometries = [];
 
 export async function initViewer(containerId) {
     const container = document.getElementById(containerId);
@@ -19,7 +21,6 @@ export async function initViewer(containerId) {
 
         // 2. Kamera (Camera)
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-        // Kamerayı odaya tepeden/çaprazdan bakacak şekilde yerleştir
         camera.position.set(4, 3, 5);
 
         // 3. Renderer
@@ -36,31 +37,52 @@ export async function initViewer(containerId) {
         controls.dampingFactor = 0.05;
         controls.minDistance = 1;
         controls.maxDistance = 15;
-        // Kameranın zeminin altına geçmesini engelle (Polar açı sınırı)
         controls.maxPolarAngle = Math.PI / 2 - 0.05; 
-        controls.target.set(0, 1, 0); // Sahnenin merkezine (biraz yukarı) odaklan
+        controls.target.set(0, 1, 0); 
 
         // 5. HDRI Ortam Işığı Yükleme
         updateLoaderText("Ortam ışığı yükleniyor...");
         await loadHDRI('assets/hdr/photo_studio_01_1k.hdr');
 
-        // 6. Geçici Sahne Geometrisi (Zemin, Duvarlar ve Örnek Objeler)
+        // 6. Geçici Sahne Geometrisi
         createTemporaryGeometry();
-
-        // İleride gerçek ADEKO GLB/GLTF modelini yükleyeceğimiz fonksiyon buraya gelecek
-        // await loadAdekoModel('path/to/model.glb');
 
         // 7. Event Listeners
         window.addEventListener('resize', onWindowResize);
+        setupFileInput();
 
-        // Yükleme tamamlandı
-        hideLoader();
+        // 8. URL'den Model Yükleme Kontrolü
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelUrl = urlParams.get('model');
+        
+        if (modelUrl) {
+            await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
+        } else {
+            // Yükleme tamamlandı (Sadece HDRI yüklendiyse)
+            hideLoader();
+        }
 
-        // 8. Animasyon Döngüsü
+        // 9. Animasyon Döngüsü
         renderer.setAnimationLoop(animate);
 
     } catch (error) {
         showError("3D Sahne başlatılırken hata oluştu: " + error.message);
+    }
+}
+
+function setupFileInput() {
+    const fileInput = document.getElementById('model-upload');
+    if (fileInput) {
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileUrl = URL.createObjectURL(file);
+            await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
+            
+            // Aynı dosyayı tekrar seçebilmek için input'u sıfırla
+            event.target.value = '';
+        });
     }
 }
 
@@ -70,46 +92,43 @@ async function loadHDRI(path) {
             (texture) => {
                 texture.mapping = THREE.EquirectangularReflectionMapping;
                 scene.environment = texture;
-                // scene.background = texture; // Arka plan olarak kullanmak isterseniz açabilirsiniz
                 resolve();
             },
-            (xhr) => {
-                // İlerleme durumu (opsiyonel)
-            },
+            undefined,
             (error) => {
-                reject(new Error("HDRI yüklenemedi. Lütfen dosya yolunu kontrol edin."));
+                reject(new Error("HDRI yüklenemedi."));
             }
         );
     });
 }
 
 function createTemporaryGeometry() {
-    // Bu bölüm ileride ADEKO modeli yüklendiğinde silinecektir.
-
-    // Zemin
     const floorGeo = new THREE.PlaneGeometry(10, 10);
     const floorMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.8, metalness: 0.2 });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
+    tempGeometries.push(floor);
 
-    // Grid (Zemini daha iyi algılamak için)
     const grid = new THREE.GridHelper(10, 10, 0x888888, 0xdddddd);
     scene.add(grid);
+    tempGeometries.push(grid);
 
-    // Geçici Mutfak Tezgahı / Dolap Temsili Kutu
     const boxGeo = new THREE.BoxGeometry(2, 0.9, 0.6);
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.5, metalness: 0.1 });
     const box = new THREE.Mesh(boxGeo, boxMat);
     box.position.set(0, 0.45, -1);
     scene.add(box);
+    tempGeometries.push(box);
+}
 
-    // Geçici Yüksek Dolap
-    const tallBoxGeo = new THREE.BoxGeometry(0.6, 2.2, 0.6);
-    const tallBoxMat = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.5, metalness: 0.1 });
-    const tallBox = new THREE.Mesh(tallBoxGeo, tallBoxMat);
-    tallBox.position.set(-1.3, 1.1, -1);
-    scene.add(tallBox);
+function removeTemporaryGeometry() {
+    tempGeometries.forEach(obj => {
+        scene.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+    });
+    tempGeometries = [];
 }
 
 function onWindowResize() {
