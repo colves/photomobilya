@@ -4,6 +4,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
 import { loadModel, setBlobUrl } from './model-loader.js';
 import { initWalkthrough, setWalkMode, updateWalkthrough } from './walkthrough-controller.js';
+import { updateMaterialVariant } from './material-library.js';
 
 let scene, camera, renderer, controls;
 let tempGeometries = [];
@@ -56,6 +57,7 @@ export async function initViewer(containerId) {
         // 8. Event Listeners
         window.addEventListener('resize', onWindowResize);
         setupFileInput();
+        setupConfigPanel();
 
         // 9. URL'den Model Yükleme Kontrolü
         const urlParams = new URLSearchParams(window.location.search);
@@ -63,6 +65,7 @@ export async function initViewer(containerId) {
         
         if (modelUrl) {
             await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
+            showConfigPanel();
         } else {
             hideLoader();
         }
@@ -104,10 +107,38 @@ function setupFileInput() {
             const fileUrl = URL.createObjectURL(file);
             setBlobUrl(fileUrl);
             await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
+            showConfigPanel();
             
             // Aynı dosyayı tekrar seçebilmek için input'u sıfırla
             event.target.value = '';
         });
+    }
+}
+
+function setupConfigPanel() {
+    const configBtns = document.querySelectorAll('.config-btn');
+    
+    configBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const target = e.target;
+            const type = target.dataset.type;
+            const val = target.dataset.val;
+            
+            // UI güncellemesi
+            const siblings = target.parentElement.querySelectorAll('.config-btn');
+            siblings.forEach(s => s.classList.remove('active'));
+            target.classList.add('active');
+            
+            // Materyal kütüphanesi güncellemesi
+            updateMaterialVariant(type, val);
+        });
+    });
+}
+
+function showConfigPanel() {
+    const panel = document.getElementById('config-panel');
+    if (panel) {
+        panel.classList.remove('hidden');
     }
 }
 

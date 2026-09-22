@@ -2,12 +2,12 @@
 
 ## NOW
 
-- [ ] Implement variant picking or interactive material features.
+- [ ] Finalize deployment integration with Kapak site.
 
 ## NEXT
 
 - [ ] Implement collision detection for walkthrough mode.
-- [ ] Finalize deployment integration with Kapak site.
+- [ ] Add real texture maps to the material configurator.
 
 ## DONE
 
@@ -20,3 +20,4 @@
 - [x] Implement First-Person Walkthrough Mode with mobile support.
 - [x] Implement dynamic Material Mapping based on mesh layer names.
 - [x] Apply scale correction (`x10`) to the loaded real model.
+- [x] Build interactive Material Configurator UI.

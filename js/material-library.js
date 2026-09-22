@@ -18,7 +18,7 @@ const materials = {
         color: 0x333333,
         roughness: 0.4,
         metalness: 0.2,
-        name: 'Koyu Taş Tezgâh'
+        name: 'Tezgâh'
     }),
     cabinetBody: new THREE.MeshStandardMaterial({
         color: 0xdcdcdc,
@@ -28,9 +28,9 @@ const materials = {
     }),
     cabinetDoor: new THREE.MeshStandardMaterial({
         color: 0xeaeaea,
-        roughness: 0.3, // Hafif parlak
+        roughness: 0.3,
         metalness: 0.05,
-        name: 'Hafif Parlak Açık Kapak'
+        name: 'Kapak'
     }),
     plinth: new THREE.MeshStandardMaterial({
         color: 0x222222,
@@ -81,6 +81,44 @@ const materials = {
     })
 };
 
+// --- Özelleştirme Seçenekleri ---
+
+const variants = {
+    door: {
+        'white': { color: 0xeaeaea, roughness: 0.3, metalness: 0.05 },
+        'wood': { color: 0xa47c54, roughness: 0.6, metalness: 0.0 },
+        'anthracite': { color: 0x2b2b2b, roughness: 0.2, metalness: 0.1 }
+    },
+    worktop: {
+        'dark-stone': { color: 0x222222, roughness: 0.4, metalness: 0.2 },
+        'light-stone': { color: 0xcccccc, roughness: 0.5, metalness: 0.1 },
+        'white-marble': { color: 0xfafafa, roughness: 0.1, metalness: 0.0 }
+    }
+};
+
+/**
+ * Belirtilen hedefteki materyal özelliklerini günceller
+ */
+export function updateMaterialVariant(type, variantKey) {
+    if (!variants[type] || !variants[type][variantKey]) return;
+    
+    const props = variants[type][variantKey];
+    let mat = null;
+    
+    if (type === 'door') mat = materials.cabinetDoor;
+    if (type === 'worktop') mat = materials.worktop;
+    
+    if (mat) {
+        if (props.color !== undefined) mat.color.setHex(props.color);
+        if (props.roughness !== undefined) mat.roughness = props.roughness;
+        if (props.metalness !== undefined) mat.metalness = props.metalness;
+        
+        // Eğer gelecekte texture eklenecekse buraya eklenebilir:
+        // if (props.map) mat.map = loadTexture(props.map); else mat.map = null;
+        mat.needsUpdate = true;
+    }
+}
+
 /**
  * Katman (Mesh) ismine göre ilgili materyali döndürür.
  */
@@ -114,15 +152,12 @@ export function getMaterialForMeshName(meshName) {
 export function applyMaterialsToModel(model) {
     model.traverse((child) => {
         if (child.isMesh) {
-            // Eşleşen materyali bul ve ata
             child.material = getMaterialForMeshName(child.name);
             
-            // Çift taraflı render (opsiyonel güvenlik için, bazen yüzey normalleri ters olabiliyor)
             if (child.material !== materials.glass) {
                 child.material.side = THREE.FrontSide;
             }
             
-            // Gölge ayarları
             child.castShadow = true;
             child.receiveShadow = true;
         }
