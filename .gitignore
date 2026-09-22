@@ -1,0 +1,5 @@
+node_modules/
+.DS_Store
+assets/models/*.glb
+assets/models/*.gltf
+!assets/models/README.md
