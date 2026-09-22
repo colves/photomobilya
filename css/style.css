@@ -261,7 +261,7 @@ body, html {
     position: fixed;
     top: 24px;
     right: 24px;
-    z-index: 90;
+    z-index: 200;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(4px);
     padding: 16px;

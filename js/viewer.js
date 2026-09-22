@@ -64,8 +64,10 @@ export async function initViewer(containerId) {
         const modelUrl = urlParams.get('model');
         
         if (modelUrl) {
-            await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
-            showConfigPanel();
+            const success = await loadModel(modelUrl, scene, camera, controls, removeTemporaryGeometry);
+            if (success) {
+                showConfigPanel();
+            }
         } else {
             hideLoader();
         }
@@ -106,8 +108,10 @@ function setupFileInput() {
 
             const fileUrl = URL.createObjectURL(file);
             setBlobUrl(fileUrl);
-            await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
-            showConfigPanel();
+            const success = await loadModel(fileUrl, scene, camera, controls, removeTemporaryGeometry);
+            if (success) {
+                showConfigPanel();
+            }
             
             // Aynı dosyayı tekrar seçebilmek için input'u sıfırla
             event.target.value = '';
@@ -139,6 +143,11 @@ function showConfigPanel() {
     const panel = document.getElementById('config-panel');
     if (panel) {
         panel.classList.remove('hidden');
+        // Zorlayıcı (fallback) stiller ekleyelim (CSS çakışmalarını önler)
+        panel.style.display = 'block';
+        panel.style.opacity = '1';
+        panel.style.visibility = 'visible';
+        panel.style.pointerEvents = 'auto';
     }
 }
 
