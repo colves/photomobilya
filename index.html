@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>PhotoMobilya - 3D Mutfak Önizleme</title>
+    
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Yükleme Ekranı -->
+    <div id="loader" class="overlay">
+        <div class="spinner"></div>
+        <p id="loader-text">Sahne Yükleniyor...</p>
+    </div>
+
+    <!-- Hata Ekranı -->
+    <div id="error-screen" class="overlay hidden">
+        <div class="error-box">
+            <h2>Bir Hata Oluştu</h2>
+            <p id="error-text"></p>
+        </div>
+    </div>
+
+    <!-- Bilgi Alanı -->
+    <div id="info-overlay">
+        <h1>PhotoMobilya</h1>
+        <h2>3D Mutfak Önizleme</h2>
+        <p>Görüntüyü sürükleyerek inceleyin.</p>
+    </div>
+
+    <!-- 3D Görüntüleyici Konteyneri -->
+    <div id="viewer-container"></div>
+
+    <!-- Ana Uygulama Başlangıcı -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
