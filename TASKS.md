@@ -36,12 +36,17 @@
 - [x] Ensure Raycaster only hides walls if they actively block interior furniture
 - [x] Enhance appliance PBR materials (Dark glass and stainless steel) to compensate for CAD geometries
 
+- [x] Finalize strict raycaster length and boundary checks for walls
+- [x] Clean up local temporary test scripts
+
 ## Pending
+- [ ] Migrate standalone integration to Kapak repository
 - [ ] Test system stability and scaling logic with three distinct GLB files (Waiting for files)
 
 - [ ] Advanced PBR texturing for configurator materials
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 - [ ] Prepare final viewer script for Kapak integration.
+
 
 
 

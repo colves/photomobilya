@@ -294,7 +294,7 @@ function updateCutaway() {
     direction.normalize();
 
     raycaster.set(camera.position, direction);
-    raycaster.far = distance;
+    raycaster.far = distance + 10.0;
 
     const allIntersects = raycaster.intersectObject(scene, true)
         .filter(hit => hit.object.isMesh && hit.object.visible);
@@ -305,13 +305,18 @@ function updateCutaway() {
     for (let i = 0; i < allIntersects.length; i++) {
         const hitObj = allIntersects[i].object;
         const name = hitObj.name.toUpperCase();
-        const isWall = (name.includes('WALLS') || name.includes('CEILING')) && !name.includes('CAB_BODY');
+        
+        const isWall = (name.includes('WALLS') || name.includes('CEILING')) && 
+                       !name.includes('CAB_BODY') && 
+                       !name.includes('BACK_PANEL');
+        
+        const isFloor = name.includes('FLOOR');
         
         if (isWall) {
             if (!wallToHide && !hitObj.userData.unsafeForCutaway) {
                 wallToHide = hitObj;
             }
-        } else if (!name.includes('FLOOR')) {
+        } else if (!isFloor && !name.includes('DOOR_WINDOW')) {
             if (wallToHide) {
                 hasFurnitureBehind = true;
             }
@@ -336,6 +341,7 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+
 
 
 

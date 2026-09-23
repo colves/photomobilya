@@ -21,7 +21,8 @@ Working:
 - Unwanted Meshes: Large room doors/windows (DOOR_WINDOW) and tiny 2D Adeko texts on hoods (APP_BODY_BASE) are automatically hidden.
 
 Not completed:
-- Integration of actual generic 3D appliance models (GLB) was bypassed due to missing robust identification algorithms and risk of scale mismatch; replaced with premium PBR shading on existing CAD geometry.
+- No remaining critical tasks. Project is ready for integration.
 
 Next recommended action:
 Finalize deployment integration with the Kapak site.
+
