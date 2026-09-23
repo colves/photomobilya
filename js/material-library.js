@@ -96,23 +96,25 @@ const materials = {
         name: 'Fircalanmis Metal Kulp'
     }),
     appliance: new THREE.MeshStandardMaterial({
-        color: 0x111111,
-        roughness: 0.15,
+        color: 0x999999,
+        roughness: 0.35,
         metalness: 0.85,
         envMapIntensity: 1.2,
-        name: 'Koyu Metal Beyaz Esya'
+        name: 'Paslanmaz Celik Beyaz Esya'
     }),
-    applianceGlass: new THREE.MeshStandardMaterial({
-        color: 0x050505,
-        roughness: 0.05,
+    applianceGlass: new THREE.MeshPhysicalMaterial({
+        color: 0x111111,
+        roughness: 0.1,
         metalness: 0.9,
-        envMapIntensity: 1.5,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        envMapIntensity: 2.0,
         name: 'Firin Cami / Siyah Cam'
     }),
     sinkArmature: new THREE.MeshStandardMaterial({
-        color: 0xe0e0e0,
-        roughness: 0.25,
-        metalness: 0.95,
+        color: 0xcccccc,
+        roughness: 0.2,
+        metalness: 1.0,
         envMapIntensity: 1.5,
         name: 'Paslanmaz Celik Eviye'
     }),
@@ -212,8 +214,8 @@ export function getMaterialForMeshName(meshName) {
     if (name.includes('PLINTH')) return materials.plinth;
     if (name.includes('HANDLE') || name.includes('KNOB')) return materials.handle;
     
-    if (name.includes('APP_BODY') || name.includes('APPLIANCE')) {
-        if (name.includes('GLASS') || name.includes('SCREEN') || name.includes('OVEN')) {
+    if (name.includes('APP_BODY') || name.includes('APPLIANCE') || name.includes('HOOD') || name.includes('FRIDGE') || name.includes('OVEN') || name.includes('HOB')) {
+        if (name.includes('GLASS') || name.includes('SCREEN') || name.includes('OVEN') || name.includes('HOB')) {
             return materials.applianceGlass;
         }
         return materials.appliance;
@@ -240,3 +242,5 @@ export function applyMaterialsToModel(model) {
         }
     });
 }
+
+

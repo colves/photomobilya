@@ -74,7 +74,7 @@ export async function initViewer(containerId) {
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
-                        if (name.includes('WALL') || name.includes('CEILING')) {
+                        if ((name.includes('WALLS') || name.includes('CEILING')) && !name.includes('CAB_BODY')) {
                             wallAndCeilingMeshes.push(child);
                         }
                     }
@@ -111,7 +111,7 @@ function setupFileInput() {
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
-                        if (name.includes('WALL') || name.includes('CEILING')) {
+                        if ((name.includes('WALLS') || name.includes('CEILING')) && !name.includes('CAB_BODY')) {
                             wallAndCeilingMeshes.push(child);
                         }
                     }
@@ -296,14 +296,32 @@ function updateCutaway() {
     raycaster.set(camera.position, direction);
     raycaster.far = distance;
 
-    const intersects = raycaster.intersectObjects(wallAndCeilingMeshes, false);
+    const allIntersects = raycaster.intersectObject(scene, true)
+        .filter(hit => hit.object.isMesh && hit.object.visible);
     
-    if (intersects.length > 0) {
-        const firstHit = intersects[0].object;
-        if (!firstHit.userData.unsafeForCutaway) {
-            firstHit.visible = false;
-            lastHiddenMeshes.add(firstHit);
+    let wallToHide = null;
+    let hasFurnitureBehind = false;
+
+    for (let i = 0; i < allIntersects.length; i++) {
+        const hitObj = allIntersects[i].object;
+        const name = hitObj.name.toUpperCase();
+        const isWall = (name.includes('WALLS') || name.includes('CEILING')) && !name.includes('CAB_BODY');
+        
+        if (isWall) {
+            if (!wallToHide && !hitObj.userData.unsafeForCutaway) {
+                wallToHide = hitObj;
+            }
+        } else if (!name.includes('FLOOR')) {
+            if (wallToHide) {
+                hasFurnitureBehind = true;
+            }
+            break;
         }
+    }
+
+    if (wallToHide && hasFurnitureBehind) {
+        wallToHide.visible = false;
+        lastHiddenMeshes.add(wallToHide);
     }
 }
 
@@ -318,6 +336,8 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+
+
 
 
 
