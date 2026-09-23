@@ -32,11 +32,16 @@
 
 - [x] Fix GPU memory leak by properly disposing old wall mesh geometries after splitting
 
+- [x] Fix Raycaster logic to strictly ignore upper cabinets (CAB_BODY_WALL)
+- [x] Ensure Raycaster only hides walls if they actively block interior furniture
+- [x] Enhance appliance PBR materials (Dark glass and stainless steel) to compensate for CAD geometries
+
 ## Pending
 - [ ] Test system stability and scaling logic with three distinct GLB files (Waiting for files)
 
 - [ ] Advanced PBR texturing for configurator materials
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 - [ ] Prepare final viewer script for Kapak integration.
+
 
 
