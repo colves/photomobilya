@@ -27,8 +27,12 @@
 - [x] Implement Lake (Lacquer) procedural textures and color options
 - [x] Fix Configurator UI mutual exclusion logic between normal and lake doors
 
+- [x] Fix back panel scale transformations relative to parent world scale
+- [x] Preserve original CAD transformations during mesh component splitting
+
 ## Pending
 
 - [ ] Advanced PBR texturing for configurator materials
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 - [ ] Prepare final viewer script for Kapak integration.
+
