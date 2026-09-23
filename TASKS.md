@@ -3,11 +3,11 @@
 ## Completed
 
 - [x] Basic HTML/CSS/JS viewer setup
-- [x] Load testing with test `.glb` model
-- [x] Setup `OrbitControls` for inspection
-- [x] Integrate Kapak styles and font (`Inter`)
-- [x] Identify mesh/layer structure of `mutfakdeneme1.glb`
-- [x] Global scale correction (`x10`) for ADEKO models
+- [x] Load testing with test .glb model
+- [x] Setup OrbitControls for inspection
+- [x] Integrate Kapak styles and font (Inter)
+- [x] Identify mesh/layer structure of mutfakdeneme1.glb
+- [x] Global scale correction (x10) for ADEKO models
 - [x] Dynamic PBR material assignment based on mesh names
 - [x] Implement UI for switching cabinet door materials (Configurator)
 - [x] Implement UI for switching worktop materials
@@ -21,15 +21,14 @@
 - [x] Clean up old unused CSS (D-Pad, Walk controls)
 - [x] Upgrade Configurator UI to match Kapak's "Ayar Paneli" aesthetic
 - [x] Improve Appliance (Oven/Sink) PBR materials
-
-## In Progress
-
-- [ ] Prepare final viewer script for Kapak integration
+- [x] Implement targeted Raycaster cutaway and connected components mesh splitting
+- [x] Generate procedural back panels for CAB_BODY_WALL
+- [x] Hide unwanted CAD elements (DOOR_WINDOW and Adeko text)
+- [x] Implement Lake (Lacquer) procedural textures and color options
+- [x] Fix Configurator UI mutual exclusion logic between normal and lake doors
 
 ## Pending
 
 - [ ] Advanced PBR texturing for configurator materials
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
-- [x] Enhance lighting and shadow mapping for studio rendering quality.
-- [x] Make shadow mapping and lighting bounds dynamically adapt to model sizes.
-- [x] Implement collision detection for walkthrough mode.
+- [ ] Prepare final viewer script for Kapak integration.

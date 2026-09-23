@@ -98,6 +98,8 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         // 2. Adeko yazısını gizle
         // 3. Arkalığı olmayan üst modüllere (CAB_BODY_WALL) arka panel ekle
         const newBackPanels = [];
+        const modelBoundingBox = new THREE.Box3().setFromObject(currentModel);
+        const roomCenter = modelBoundingBox.getCenter(new THREE.Vector3());
         currentModel.traverse((child) => {
             if (child.isMesh) {
                 const name = child.name.toUpperCase();
@@ -128,7 +130,7 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                     const isDepthZ = size.z < size.x;
                     
                     // Odanın merkezine göre dolabın hangi duvarda olduğunu tahmin et
-                    const roomCenter = roomBoundingBox.getCenter(new THREE.Vector3());
+                    
                     
                     // İnce bir panel oluştur
                     const panelThickness = 0.005; // 5mm
@@ -470,3 +472,4 @@ function adjustCameraToModel(model, camera, controls) {
 
     return { center: newCenter, maxDim, initialCameraZ: cameraZ, boundingBox: newBox };
 }
+

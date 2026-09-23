@@ -130,16 +130,20 @@ function setupConfigPanel() {
     
     configBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const target = e.currentTarget; // Ensure we get the button, not its children
+            const target = e.currentTarget;
             const type = target.dataset.type;
             const val = target.dataset.val;
             
-            // UI güncellemesi
-            const siblings = target.parentElement.querySelectorAll('.renk-btn');
-            siblings.forEach(s => s.classList.remove('active'));
-            target.classList.add('active');
+            // Eger kapak ('door') se�ildiyse, t�m kapak butonlarindaki active sinifini kaldir
+            if (type === 'door') {
+                const allDoorBtns = document.querySelectorAll('.renk-btn[data-type="door"]');
+                allDoorBtns.forEach(b => b.classList.remove('active'));
+            } else {
+                const siblings = target.parentElement.querySelectorAll('.renk-btn');
+                siblings.forEach(s => s.classList.remove('active'));
+            }
             
-            // Materyal kütüphanesi güncellemesi
+            target.classList.add('active');
             updateMaterialVariant(type, val);
         });
     });
@@ -281,7 +285,7 @@ function updateCutaway() {
     lastTargetPos.copy(controls.target);
 
     wallAndCeilingMeshes.forEach(m => {
-        m.visible = true;
+        if (!m.userData.isForceHidden) m.visible = true;
     });
     lastHiddenMeshes.clear();
 
@@ -314,4 +318,6 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+
+
 

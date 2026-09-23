@@ -1,24 +1,25 @@
 # CURRENT STATUS
 
-Stage: UI/UX & Visual Stability Refinements
+Stage: Advanced Visuals & Geometry Fallbacks
 
 Currently working on:
-Completed removal of walkthrough mode, fixed wall flickering with hysteresis cutaway, and modernized configurator UI to match Kapak design language. Also implemented programmatic geometry cleaning to solve Z-fighting on CAD walls.
+Finalized targeted Raycaster cutaway, lacquer (lake) textures integration, back panel generation for upper cabinets, and mesh hiding fallbacks for Adeko text.
 
 Working:
 - Shared project-memory files are in place.
 - Standalone Three.js viewer is functional with robust model loading, camera controls, and inspect mode.
-- ADEKO to GLB Pipeline Analysis completed (`docs/adeko-to-glb-pipeline-analysis.md`).
-- Real model structure inspected (`docs/mutfakdeneme1-model-inspection.md`).
-- Scale correction (`x10`) applied safely via Auto-Scale logic only to models exported in 0.1 scale.
+- ADEKO to GLB Pipeline Analysis completed.
+- Scale correction (x10) applied safely via Auto-Scale logic only to models exported in 0.1 scale.
 - Dynamic material mapping assigns PBR materials based on mesh names, including improved dark appliance/glass and stainless steel sink materials.
-- Modernized Configurator UI matching the elegant Kapak "Ayar Paneli" aesthetic, allowing real-time switching of Cabinet Door and Worktop materials.
-- Studio lighting setup (Key Light, Fill Light, Ambient Light) and WebGL Soft Shadows implemented.
-- HDRI integration with PMREM (via EquirectangularReflectionMapping) provides realistic PBR reflections.
+- Modernized Configurator UI matching the elegant Kapak "Ayar Paneli" aesthetic, featuring mutually exclusive selection between Normal and Lacquer (Lake) doors.
+- Lacquer (Lake) procedural texture generator ported from Kapak, applying realistic 10% mix clearcoat noise dynamically to Lake materials.
+- Studio lighting setup and HDRI integration providing realistic PBR reflections.
 - Lighting and shadow frustum dynamically scales and centers to the exact bounds of the loaded model.
-- Dynamic Hysteresis Cutaway system hides outer walls when the camera is outside the room. `wallsVisible` state securely resets on new model load.
-- Mesh Geometry Cleaner: Reads wall meshes, de-indexes them, and securely deletes strictly cloned overlapping faces using a 1mm quantized vertex-hash map. This natively fixes internal Z-fighting on CAD surfaces while perfectly preserving thin valid walls and cutouts. Per-mesh face removal tracking and bound updates applied.
-- Removed deprecated Walkthrough Mode components and unused D-Pad CSS to streamline the codebase and user experience.
+- Targeted Raycaster Cutaway system hides only the specific wall blocking the view from the camera to the orbit target.
+- Automatic splitting of disconnected wall meshes (splitMeshIntoComponents) ensures cutaway doesn't incorrectly hide the entire room.
+- Mesh Geometry Cleaner: Reads wall meshes, de-indexes them, and securely deletes strictly cloned overlapping faces to prevent Z-fighting.
+- Fallback Generators: Missing upper cabinet back panels (CAB_BODY_WALL) are procedurally generated (5mm thick).
+- Unwanted Meshes: Large room doors/windows (DOOR_WINDOW) and tiny 2D Adeko texts on hoods (APP_BODY_BASE) are automatically hidden.
 
 Not completed:
 - Integration of actual 3D appliance models (GLB) for oven/hob/hood to replace low-poly CAD geometries.
