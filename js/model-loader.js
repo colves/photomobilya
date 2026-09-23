@@ -444,6 +444,7 @@ export function processWallsForCutaway(model) {
         const parent = r.old.parent;
         if (parent) {
             parent.remove(r.old);
+            if (r.old.geometry) r.old.geometry.dispose();
             r.newComponents.forEach(comp => parent.add(comp));
         }
     });
@@ -485,6 +486,7 @@ function adjustCameraToModel(model, camera, controls) {
 
     return { center: newCenter, maxDim, initialCameraZ: cameraZ, boundingBox: newBox };
 }
+
 
 
 

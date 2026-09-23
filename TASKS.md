@@ -30,9 +30,13 @@
 - [x] Fix back panel scale transformations relative to parent world scale
 - [x] Preserve original CAD transformations during mesh component splitting
 
+- [x] Fix GPU memory leak by properly disposing old wall mesh geometries after splitting
+
 ## Pending
+- [ ] Test system stability and scaling logic with three distinct GLB files (Waiting for files)
 
 - [ ] Advanced PBR texturing for configurator materials
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 - [ ] Prepare final viewer script for Kapak integration.
+
 
