@@ -157,13 +157,19 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                     // Mevcut gÃ¶vde materyalini kullan
                     const backMesh = new THREE.Mesh(backGeo, child.material);
                     backMesh.position.set(px, py, pz);
-                    backMesh.name = child.name + "_BACK_PANEL";
+                    backMesh.name = child.name + '_BACK_PANEL';
                     
-                    // Modeli dÃ¼nya sÄ±fÄ±rÄ±ndayken hesapladÄ±k, child'Ä±n local uzayÄ±na deÄŸil
-                    // global uzaya gÃ¶re oluÅŸturup sonradan currentModel'e ekleyeceÄŸiz.
-                    // Fakat currentModel zaten orijinde ve scale'lenmemiÅŸ durumda! (Transform x10 yapÄ±lmÄ±ÅŸtÄ± ama updateMatrixWorld Ã§aÄŸrÄ±ldÄ±)
-                    // En gÃ¼venlisi currentModel'in doÄŸrudan child'Ä± yapmak.
-                    // world position'Ä± local'e Ã§evir:
+                    // Ölçek (scale) düzeltmesi:
+                    // pWidth/pHeight/pDepth dünya (world) uzayinda hesaplandi.
+                    // backMesh, currentModel'in dogrudan child'i olacagi için parent'in ölçeginden etkilenecek.
+                    // Eger currentModel x10 büyütüldüyse, panel 10 kat daha büyük görünür!
+                    // Bunu önlemek için parent'in world scale'ini alip panelin local scale'ini tersiyle dengeliyoruz.
+                    const parentWorldScale = new THREE.Vector3();
+                    currentModel.getWorldScale(parentWorldScale);
+                    backMesh.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                    
+                    // Konum (position) düzeltmesi:
+                    // world position'i local'e çevir:
                     currentModel.worldToLocal(backMesh.position);
                     newBackPanels.push(backMesh);
                 }
@@ -411,28 +417,35 @@ function splitMeshIntoComponents(mesh) {
 }
 
 export function processWallsForCutaway(model) {
-    const toRemove = [];
-    const toAdd = [];
+    const replacements = [];
     model.traverse((child) => {
         if (child.isMesh && (child.name.toUpperCase().includes('WALLS') || child.name.toUpperCase().includes('CEILING'))) {
             const components = splitMeshIntoComponents(child);
             if (components.length > 1) {
-                console.log(`[WallClean] ${child.name} baÅŸarÄ±yla ${components.length} baÄŸÄ±msÄ±z duvara ayrÄ±ldÄ±.`);
-                toRemove.push(child);
-                toAdd.push(...components);
+                console.log(`[WallClean] ${child.name} islendi`);
+                
+                // Eski mesh'in transformasyonlarini yeni parçalara kopyala
+                components.forEach(comp => {
+                    comp.position.copy(child.position);
+                    comp.quaternion.copy(child.quaternion);
+                    comp.scale.copy(child.scale);
+                });
+                
+                replacements.push({ old: child, newComponents: components });
             } else {
-                console.log(`[WallClean] ${child.name} tek parÃ§a veya ayrÄ±lamadÄ±. Hedefli cutaway riskli olabilir.`);
+                console.log(`[WallClean] ${child.name} islendi`);
                 child.userData = child.userData || {};
                 child.userData.unsafeForCutaway = true;
             }
         }
     });
 
-    toRemove.forEach(m => {
-        if (m.parent) m.parent.remove(m);
-    });
-    toAdd.forEach(m => {
-        model.add(m);
+    replacements.forEach(r => {
+        const parent = r.old.parent;
+        if (parent) {
+            parent.remove(r.old);
+            r.newComponents.forEach(comp => parent.add(comp));
+        }
     });
 }
 
@@ -472,4 +485,7 @@ function adjustCameraToModel(model, camera, controls) {
 
     return { center: newCenter, maxDim, initialCameraZ: cameraZ, boundingBox: newBox };
 }
+
+
+
 
