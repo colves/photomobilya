@@ -70,7 +70,7 @@ export async function initViewer(containerId) {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
                 wallAndCeilingMeshes = [];
-                wallsVisible = true; // YENI MODELDE SIFIRLA
+                
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
@@ -107,7 +107,7 @@ function setupFileInput() {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
                 wallAndCeilingMeshes = [];
-                wallsVisible = true; // YENI MODELDE SIFIRLA
+                
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
@@ -264,23 +264,42 @@ function removeTemporaryGeometry() {
 
 let roomBoundingBox = null;
 let wallAndCeilingMeshes = [];
-let wallsVisible = true;
+
+const raycaster = new THREE.Raycaster();
+let lastCameraPos = new THREE.Vector3();
+let lastTargetPos = new THREE.Vector3();
+let lastHiddenMeshes = new Set();
 
 function updateCutaway() {
-    if (!roomBoundingBox || wallAndCeilingMeshes.length === 0) return;
+    if (wallAndCeilingMeshes.length === 0) return;
 
-    // Histerezisli Cutaway (Görünürlük) Mantığı:
-    // Kamera odanın dışındayken duvarlar ve tavan görüşü kapatmamalı.
-    // Titreşimi önlemek için; dışarı çıkarken mesafe > 1.0m olana kadar gizleme,
-    // içeri girerken tam olarak içeri girene kadar (mesafe = 0) gösterme.
-    const dist = roomBoundingBox.distanceToPoint(camera.position);
+    if (lastCameraPos.distanceTo(camera.position) < 0.05 && lastTargetPos.distanceTo(controls.target) < 0.05) {
+        return;
+    }
+    
+    lastCameraPos.copy(camera.position);
+    lastTargetPos.copy(controls.target);
 
-    if (wallsVisible && dist > 1.0) {
-        wallsVisible = false;
-        wallAndCeilingMeshes.forEach(m => m.visible = false);
-    } else if (!wallsVisible && dist === 0) {
-        wallsVisible = true;
-        wallAndCeilingMeshes.forEach(m => m.visible = true);
+    wallAndCeilingMeshes.forEach(m => {
+        m.visible = true;
+    });
+    lastHiddenMeshes.clear();
+
+    const direction = new THREE.Vector3().subVectors(controls.target, camera.position);
+    const distance = direction.length();
+    direction.normalize();
+
+    raycaster.set(camera.position, direction);
+    raycaster.far = distance;
+
+    const intersects = raycaster.intersectObjects(wallAndCeilingMeshes, false);
+    
+    if (intersects.length > 0) {
+        const firstHit = intersects[0].object;
+        if (!firstHit.userData.unsafeForCutaway) {
+            firstHit.visible = false;
+            lastHiddenMeshes.add(firstHit);
+        }
     }
 }
 
@@ -295,3 +314,4 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+

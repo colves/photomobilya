@@ -89,6 +89,86 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
 
         // Duvar geometrisini analiz et ve güvenli şekilde çift katmanları / Z-fighting yapan yüzleri temizle
         cleanWallGeometry(currentModel);
+        
+        // Hedefli cutaway için duvarları bağımsız mesh'lere ayır
+        processWallsForCutaway(currentModel);
+        
+        // Ekstra geometri düzeltmeleri:
+        // 1. Kapı/Pencere gibi mutfak dışı yapı elemanlarını gizle (büyük gri paneller dahil)
+        // 2. Adeko yazısını gizle
+        // 3. Arkalığı olmayan üst modüllere (CAB_BODY_WALL) arka panel ekle
+        const newBackPanels = [];
+        currentModel.traverse((child) => {
+            if (child.isMesh) {
+                const name = child.name.toUpperCase();
+                
+                // Kapı/Pencere gizle
+                if (name.includes('DOOR_WINDOW')) {
+                    child.visible = false;
+                    child.userData.isForceHidden = true;
+                }
+                
+                // Adeko yazısını gizle (APP_BODY_BASE içinde çok ince/yassı bir obje)
+                if (name.includes('APP_BODY_BASE')) {
+                    const box = new THREE.Box3().setFromObject(child);
+                    const size = box.getSize(new THREE.Vector3());
+                    if (size.y < 0.02 && size.z < 0.01) {
+                        child.visible = false;
+                        child.userData.isForceHidden = true;
+                    }
+                }
+                
+                // Üst modül arka paneli
+                if (name.includes('CAB_BODY_WALL')) {
+                    const box = new THREE.Box3().setFromObject(child);
+                    const size = box.getSize(new THREE.Vector3());
+                    const center = box.getCenter(new THREE.Vector3());
+                    
+                    // Derinlik eksenini bul (genellikle en küçük eksendir, üst modüllerde ~30cm)
+                    const isDepthZ = size.z < size.x;
+                    
+                    // Odanın merkezine göre dolabın hangi duvarda olduğunu tahmin et
+                    const roomCenter = roomBoundingBox.getCenter(new THREE.Vector3());
+                    
+                    // İnce bir panel oluştur
+                    const panelThickness = 0.005; // 5mm
+                    let pWidth = size.x;
+                    let pHeight = size.y;
+                    let pDepth = size.z;
+                    
+                    let px = center.x;
+                    let py = center.y;
+                    let pz = center.z;
+                    
+                    if (isDepthZ) {
+                        pDepth = panelThickness;
+                        // Arka taraf, odanın merkezinden en uzak olan taraftır
+                        if (center.z < roomCenter.z) pz = box.min.z + panelThickness/2;
+                        else pz = box.max.z - panelThickness/2;
+                    } else {
+                        pWidth = panelThickness;
+                        if (center.x < roomCenter.x) px = box.min.x + panelThickness/2;
+                        else px = box.max.x - panelThickness/2;
+                    }
+                    
+                    const backGeo = new THREE.BoxGeometry(pWidth, pHeight, pDepth);
+                    // Mevcut gövde materyalini kullan
+                    const backMesh = new THREE.Mesh(backGeo, child.material);
+                    backMesh.position.set(px, py, pz);
+                    backMesh.name = child.name + "_BACK_PANEL";
+                    
+                    // Modeli dünya sıfırındayken hesapladık, child'ın local uzayına değil
+                    // global uzaya göre oluşturup sonradan currentModel'e ekleyeceğiz.
+                    // Fakat currentModel zaten orijinde ve scale'lenmemiş durumda! (Transform x10 yapılmıştı ama updateMatrixWorld çağrıldı)
+                    // En güvenlisi currentModel'in doğrudan child'ı yapmak.
+                    // world position'ı local'e çevir:
+                    currentModel.worldToLocal(backMesh.position);
+                    newBackPanels.push(backMesh);
+                }
+            }
+        });
+        
+        newBackPanels.forEach(p => currentModel.add(p));
 
         scene.add(currentModel);
 
@@ -223,6 +303,134 @@ function cleanWallGeometry(model) {
                 console.log(`[WallClean] Kalınlık (extrude) uygulanamadı çünkü kalan yüzeylerin topolojisi manifold (kapalı/sürekli) değil veya açık kenarlar barındırıyor.`);
             }
         }
+    });
+}
+
+/**
+ * Tek parça halindeki mesh'i (bağlantısız üçgen adalarına göre) bağımsız mesh'lere ayırır.
+ * Güvenli ayrışma olmazsa (tek parça kalırsa) false döner.
+ */
+function splitMeshIntoComponents(mesh) {
+    const geo = mesh.geometry;
+    const pos = geo.attributes.position;
+    if (!pos) return [mesh];
+
+    const vertexToTriangles = new Map();
+    const q = (x, y, z) => `${Math.round(x*100)},${Math.round(y*100)},${Math.round(z*100)}`;
+    
+    for (let i = 0; i < pos.count; i += 3) {
+        const h1 = q(pos.getX(i), pos.getY(i), pos.getZ(i));
+        const h2 = q(pos.getX(i+1), pos.getY(i+1), pos.getZ(i+1));
+        const h3 = q(pos.getX(i+2), pos.getY(i+2), pos.getZ(i+2));
+        
+        [h1, h2, h3].forEach(h => {
+            if (!vertexToTriangles.has(h)) vertexToTriangles.set(h, []);
+            vertexToTriangles.get(h).push(i);
+        });
+    }
+    
+    const visited = new Set();
+    const components = [];
+    
+    for (let i = 0; i < pos.count; i += 3) {
+        if (visited.has(i)) continue;
+        const component = [];
+        const queue = [i];
+        visited.add(i);
+        
+        while(queue.length > 0) {
+            const tri = queue.shift();
+            component.push(tri);
+            
+            const h1 = q(pos.getX(tri), pos.getY(tri), pos.getZ(tri));
+            const h2 = q(pos.getX(tri+1), pos.getY(tri+1), pos.getZ(tri+1));
+            const h3 = q(pos.getX(tri+2), pos.getY(tri+2), pos.getZ(tri+2));
+            
+            [h1, h2, h3].forEach(h => {
+                const neighbors = vertexToTriangles.get(h);
+                if (neighbors) {
+                    neighbors.forEach(n => {
+                        if (!visited.has(n)) {
+                            visited.add(n);
+                            queue.push(n);
+                        }
+                    });
+                }
+            });
+        }
+        components.push(component);
+    }
+
+    if (components.length <= 1) {
+        return [mesh]; // Ayrılamadı veya tek parça
+    }
+
+    const newMeshes = [];
+    components.forEach((comp, idx) => {
+        const newGeo = new THREE.BufferGeometry();
+        const newPos = new Float32Array(comp.length * 9);
+        const newNorm = geo.attributes.normal ? new Float32Array(comp.length * 9) : null;
+        const newUv = geo.attributes.uv ? new Float32Array(comp.length * 6) : null;
+        
+        let pOffset = 0, uOffset = 0;
+        comp.forEach(origIdx => {
+            for (let k = 0; k < 3; k++) {
+                const vIdx = origIdx + k;
+                newPos[pOffset] = pos.getX(vIdx);
+                newPos[pOffset+1] = pos.getY(vIdx);
+                newPos[pOffset+2] = pos.getZ(vIdx);
+                if (newNorm) {
+                    newNorm[pOffset] = geo.attributes.normal.getX(vIdx);
+                    newNorm[pOffset+1] = geo.attributes.normal.getY(vIdx);
+                    newNorm[pOffset+2] = geo.attributes.normal.getZ(vIdx);
+                }
+                if (newUv) {
+                    newUv[uOffset] = geo.attributes.uv.getX(vIdx);
+                    newUv[uOffset+1] = geo.attributes.uv.getY(vIdx);
+                    uOffset += 2;
+                }
+                pOffset += 3;
+            }
+        });
+        
+        newGeo.setAttribute('position', new THREE.BufferAttribute(newPos, 3));
+        if (newNorm) newGeo.setAttribute('normal', new THREE.BufferAttribute(newNorm, 3));
+        if (newUv) newGeo.setAttribute('uv', new THREE.BufferAttribute(newUv, 2));
+        newGeo.computeBoundingBox();
+        newGeo.computeBoundingSphere();
+        
+        const newMesh = new THREE.Mesh(newGeo, mesh.material);
+        newMesh.name = mesh.name + '_part_' + idx;
+        newMesh.userData = mesh.userData || {};
+        newMeshes.push(newMesh);
+    });
+    
+    return newMeshes;
+}
+
+export function processWallsForCutaway(model) {
+    const toRemove = [];
+    const toAdd = [];
+    model.traverse((child) => {
+        if (child.isMesh && (child.name.toUpperCase().includes('WALLS') || child.name.toUpperCase().includes('CEILING'))) {
+            const components = splitMeshIntoComponents(child);
+            if (components.length > 1) {
+                console.log(`[WallClean] ${child.name} başarıyla ${components.length} bağımsız duvara ayrıldı.`);
+                toRemove.push(child);
+                toAdd.push(...components);
+            } else {
+                console.log(`[WallClean] ${child.name} tek parça veya ayrılamadı. Hedefli cutaway riskli olabilir.`);
+                child.userData = child.userData || {};
+                child.userData.unsafeForCutaway = true;
+            }
+        }
+    });
+
+    toRemove.forEach(m => {
+        if (m.parent) m.parent.remove(m);
+    });
+    toAdd.forEach(m => {
+        model.add(m);
     });
 }
 
