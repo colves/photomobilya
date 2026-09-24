@@ -98,8 +98,12 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         // 2. Adeko yazısını gizle
         // 3. Arkalığı olmayan üst modüllere (CAB_BODY_WALL) arka panel ekle
         const newBackPanels = [];
-        const modelBoundingBox = new THREE.Box3().setFromObject(currentModel);
-        const roomCenter = modelBoundingBox.getCenter(new THREE.Vector3());
+          const modelBoundingBox = new THREE.Box3().setFromObject(currentModel);
+          const roomCenter = modelBoundingBox.getCenter(new THREE.Vector3());
+          const roomSize = modelBoundingBox.getSize(new THREE.Vector3());
+          let maxCeilingY = -Infinity;
+          let ceilingMaterial = null;
+          let ceilingBox = new THREE.Box3();
         currentModel.traverse((child) => {
             if (child.isMesh) {
                 const name = child.name.toUpperCase();
@@ -120,6 +124,7 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                 // Üst modül arka paneli
                 if (name.includes('CEILING')) {
                       const box = new THREE.Box3().setFromObject(child);
+                      ceilingBox.union(box);
                       if (box.max.y > maxCeilingY) {
                           maxCeilingY = box.max.y;
                           ceilingMaterial = child.material;
@@ -184,8 +189,11 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         
         newBackPanels.forEach(p => currentModel.add(p));
           
-          if (ceilingMaterial && maxCeilingY !== -Infinity) {
-              const ceilingFillerGeo = new THREE.PlaneGeometry(roomSize.x * 1.5, roomSize.z * 1.5);
+          if (ceilingMaterial && maxCeilingY !== -Infinity && !ceilingBox.isEmpty()) {
+              const cSize = ceilingBox.getSize(new THREE.Vector3());
+              const cCenter = ceilingBox.getCenter(new THREE.Vector3());
+              
+              const ceilingFillerGeo = new THREE.PlaneGeometry(cSize.x + 0.05, cSize.z + 0.05);
               const ceilingFillerMesh = new THREE.Mesh(ceilingFillerGeo, ceilingMaterial);
               
               ceilingFillerMesh.rotation.x = Math.PI / 2;
@@ -194,10 +202,12 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
               currentModel.getWorldScale(parentWorldScale);
               ceilingFillerMesh.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
               
-              ceilingFillerMesh.position.set(roomCenter.x, maxCeilingY + 0.001, roomCenter.z);
+              ceilingFillerMesh.position.set(cCenter.x, maxCeilingY + 0.001, cCenter.z);
               currentModel.worldToLocal(ceilingFillerMesh.position);
               
               ceilingFillerMesh.name = 'CEILING_FILLER';
+              ceilingFillerMesh.userData.isForceHidden = false;
+              ceilingFillerMesh.userData.unsafeForCutaway = true;
               currentModel.add(ceilingFillerMesh);
           }
 
@@ -509,6 +519,10 @@ function adjustCameraToModel(model, camera, controls) {
 
     return { center: newCenter, maxDim, initialCameraZ: cameraZ, boundingBox: newBox };
 }
+
+
+
+
 
 
 

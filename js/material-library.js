@@ -229,9 +229,23 @@ export function getMaterialForMeshName(meshName) {
 }
 
 export function applyMaterialsToModel(model) {
+    let matchedDoorsCount = 0;
+    
     model.traverse((child) => {
         if (child.isMesh) {
-            child.material = getMaterialForMeshName(child.name);
+            let materialName = child.name;
+            let parentName = child.parent ? child.parent.name.toUpperCase() : '';
+            
+            // Re-classify doors mapped to wrong layers (e.g. drawers exported as CAB_BODY_BASE)
+            if (parentName.match(/_\\d{4}X\\d{4}/) || parentName.includes('BULSK') || parentName.includes('KAPAK')) {
+                materialName = 'CAB_DOOR_FORCE';
+            }
+            
+            child.material = getMaterialForMeshName(materialName);
+            
+            if (materialName === 'CAB_DOOR_FORCE' || materialName.toUpperCase().includes('CAB_DOOR')) {
+                matchedDoorsCount++;
+            }
             
             if (child.material !== materials.glass) {
                 child.material.side = THREE.FrontSide;
@@ -241,6 +255,10 @@ export function applyMaterialsToModel(model) {
             child.receiveShadow = true;
         }
     });
+    
+    console.log([Material Library] Eslesen kapak mesh/yüz sayisi: );
 }
+
+
 
 
