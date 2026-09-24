@@ -74,7 +74,7 @@ export async function initViewer(containerId) {
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
-                        if ((name.includes('WALLS') || name.includes('CEILING')) && !name.includes('CAB_BODY')) {
+                        if ((name.includes('WALLS') || name.includes('CEILING') || name.includes('DOOR_WINDOW') || name.includes('WINDOW_GLASSES')) && !name.includes('CAB_BODY')) {
                             wallAndCeilingMeshes.push(child);
                         }
                     }
@@ -111,7 +111,7 @@ function setupFileInput() {
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         const name = child.name.toUpperCase();
-                        if ((name.includes('WALLS') || name.includes('CEILING')) && !name.includes('CAB_BODY')) {
+                        if ((name.includes('WALLS') || name.includes('CEILING') || name.includes('DOOR_WINDOW') || name.includes('WINDOW_GLASSES')) && !name.includes('CAB_BODY')) {
                             wallAndCeilingMeshes.push(child);
                         }
                     }
@@ -299,34 +299,56 @@ function updateCutaway() {
     const allIntersects = raycaster.intersectObject(scene, true)
         .filter(hit => hit.object.isMesh && hit.object.visible);
     
-    let wallToHide = null;
+    let objectToHide = null;
     let hasFurnitureBehind = false;
 
     for (let i = 0; i < allIntersects.length; i++) {
         const hitObj = allIntersects[i].object;
         const name = hitObj.name.toUpperCase();
         
-        const isWall = (name.includes('WALLS') || name.includes('CEILING')) && 
-                       !name.includes('CAB_BODY') && 
-                       !name.includes('BACK_PANEL');
+        const isStructure = (
+            name.includes('WALLS') || 
+            name.includes('CEILING') || 
+            name.includes('DOOR_WINDOW') || 
+            name.includes('WINDOW_GLASSES')
+        ) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL');
         
         const isFloor = name.includes('FLOOR');
+        const isFurniture = !isStructure && !isFloor;
         
-        if (isWall) {
-            if (!wallToHide && !hitObj.userData.unsafeForCutaway) {
-                wallToHide = hitObj;
+        if (isStructure) {
+            if (!objectToHide && !hitObj.userData.unsafeForCutaway) {
+                objectToHide = hitObj;
             }
-        } else if (!isFloor && !name.includes('DOOR_WINDOW')) {
-            if (wallToHide) {
+        } else if (isFurniture) {
+            if (objectToHide) {
                 hasFurnitureBehind = true;
             }
             break;
         }
     }
 
-    if (wallToHide && hasFurnitureBehind) {
-        wallToHide.visible = false;
-        lastHiddenMeshes.add(wallToHide);
+    if (objectToHide && hasFurnitureBehind) {
+        const hideName = objectToHide.name.toUpperCase();
+        const hideList = [];
+        
+        if (hideName.includes('CEILING')) {
+            wallAndCeilingMeshes.forEach(m => {
+                if (m.name.toUpperCase().includes('CEILING')) hideList.push(m);
+            });
+        } else if (hideName.includes('DOOR_WINDOW') || hideName.includes('WINDOW_GLASSES')) {
+            wallAndCeilingMeshes.forEach(m => {
+                const n = m.name.toUpperCase();
+                if (n.includes('DOOR_WINDOW') || n.includes('WINDOW_GLASSES')) hideList.push(m);
+            });
+        } else {
+            hideList.push(objectToHide);
+        }
+
+        hideList.forEach(m => {
+            m.visible = false;
+            lastHiddenMeshes.add(m);
+        });
     }
 }
 
@@ -341,6 +363,8 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+
+
 
 
 

@@ -105,10 +105,7 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                 const name = child.name.toUpperCase();
                 
                 // Kapı/Pencere gizle
-                if (name.includes('DOOR_WINDOW')) {
-                    child.visible = false;
-                    child.userData.isForceHidden = true;
-                }
+                // DOOR_WINDOW is now handled by structural cutaway
                 
                 // Adeko yazısını gizle (APP_BODY_BASE içinde çok ince/yassı bir obje)
                 if (name.includes('APP_BODY_BASE')) {
@@ -121,7 +118,16 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                 }
                 
                 // Üst modül arka paneli
-                if (name.includes('CAB_BODY_WALL')) {
+                if (name.includes('CEILING')) {
+                      const box = new THREE.Box3().setFromObject(child);
+                      if (box.max.y > maxCeilingY) {
+                          maxCeilingY = box.max.y;
+                          ceilingMaterial = child.material;
+                      }
+                  }
+                  
+                  // Aost modAl arka paneli
+                  if (name.includes('CAB_BODY_WALL')) {
                     const box = new THREE.Box3().setFromObject(child);
                     const size = box.getSize(new THREE.Vector3());
                     const center = box.getCenter(new THREE.Vector3());
@@ -177,6 +183,23 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         });
         
         newBackPanels.forEach(p => currentModel.add(p));
+          
+          if (ceilingMaterial && maxCeilingY !== -Infinity) {
+              const ceilingFillerGeo = new THREE.PlaneGeometry(roomSize.x * 1.5, roomSize.z * 1.5);
+              const ceilingFillerMesh = new THREE.Mesh(ceilingFillerGeo, ceilingMaterial);
+              
+              ceilingFillerMesh.rotation.x = Math.PI / 2;
+              
+              const parentWorldScale = new THREE.Vector3();
+              currentModel.getWorldScale(parentWorldScale);
+              ceilingFillerMesh.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+              
+              ceilingFillerMesh.position.set(roomCenter.x, maxCeilingY + 0.001, roomCenter.z);
+              currentModel.worldToLocal(ceilingFillerMesh.position);
+              
+              ceilingFillerMesh.name = 'CEILING_FILLER';
+              currentModel.add(ceilingFillerMesh);
+          }
 
         scene.add(currentModel);
 
@@ -486,6 +509,10 @@ function adjustCameraToModel(model, camera, controls) {
 
     return { center: newCenter, maxDim, initialCameraZ: cameraZ, boundingBox: newBox };
 }
+
+
+
+
 
 
 
