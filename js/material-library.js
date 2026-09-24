@@ -229,25 +229,41 @@ export function getMaterialForMeshName(meshName) {
 }
 
 export function applyMaterialsToModel(model) {
-    let matchedDoorsCount = 0;
+    let matchedDoorsMeshCount = 0;
+    let matchedDoorsFaceCount = 0;
     
     model.traverse((child) => {
         if (child.isMesh) {
             let materialName = child.name;
-            let parentName = child.parent ? child.parent.name.toUpperCase() : '';
             
-            // Re-classify doors mapped to wrong layers (e.g. drawers exported as CAB_BODY_BASE)
-            if (parentName.match(/_\\d{4}X\\d{4}/) || parentName.includes('BULSK') || parentName.includes('KAPAK')) {
+            // Traverse up the parent chain to check if it's a door block
+            let current = child.parent;
+            let isDoorBlock = false;
+            while (current && current.type !== 'Scene') {
+                let pName = current.name.toUpperCase();
+                if (pName.match(/_\d{4}X\d{4}/) || pName.includes('BULSK') || pName.includes('KAPAK')) {
+                    isDoorBlock = true;
+                    break;
+                }
+                current = current.parent;
+            }
+            
+            if (isDoorBlock) {
                 materialName = 'CAB_DOOR_FORCE';
             }
             
             child.material = getMaterialForMeshName(materialName);
             
             if (materialName === 'CAB_DOOR_FORCE' || materialName.toUpperCase().includes('CAB_DOOR')) {
-                matchedDoorsCount++;
+                matchedDoorsMeshCount++;
+                if (child.geometry && child.geometry.index) {
+                    matchedDoorsFaceCount += child.geometry.index.count / 3;
+                } else if (child.geometry && child.geometry.attributes.position) {
+                    matchedDoorsFaceCount += child.geometry.attributes.position.count / 3;
+                }
             }
             
-            if (child.material !== materials.glass) {
+            if (child.material !== materials.glass && child.material !== materials.applianceGlass) {
                 child.material.side = THREE.FrontSide;
             }
             
@@ -256,9 +272,8 @@ export function applyMaterialsToModel(model) {
         }
     });
     
-    console.log([Material Library] Eslesen kapak mesh/yüz sayisi: );
+    console.log('[Material Library] Eslesen kapak mesh sayisi: ' + matchedDoorsMeshCount + ', yüz/üçgen sayisi: ' + matchedDoorsFaceCount);
 }
-
 
 
 

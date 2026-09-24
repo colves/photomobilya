@@ -90,7 +90,7 @@ body, html {
 }
 
 /* KONTROLLER */
-.info-panel {
+#info-overlay {
     position: fixed;
     top: 24px;
     left: 24px;
@@ -102,19 +102,19 @@ body, html {
     border: 1px solid var(--border);
 }
 
-.info-panel h1 {
+#info-overlay h1 {
     font-size: 18px;
     font-family: var(--font-serif);
     margin-bottom: 4px;
     font-weight: 600;
 }
 
-.info-panel p {
+#info-overlay p {
     font-size: 13px;
     color: var(--text-muted);
 }
 
-.btn-upload {
+.model-upload-btn {
     margin-top: 12px;
     display: inline-block;
     background-color: var(--ink);
@@ -127,7 +127,7 @@ body, html {
     font-weight: 500;
 }
 
-.btn-upload:hover {
+.model-upload-btn:hover {
     background-color: var(--text-muted);
 }
 
@@ -239,7 +239,7 @@ body, html {
 }
 
 /* Kamera Kontrolleri */
-.kamera-kontrolleri {
+#camera-controls {
     position: fixed;
     bottom: 24px;
     left: 50%;
@@ -279,7 +279,7 @@ body, html {
 
 /* Mobil Uyumluluk */
 @media (max-width: 768px) {
-    .info-panel {
+    #info-overlay {
         top: 16px;
         left: 16px;
         right: 16px;
@@ -289,21 +289,21 @@ body, html {
         align-items: center;
     }
     
-    .info-panel h1 {
+    #info-overlay h1 {
         font-size: 16px;
         margin-bottom: 0;
     }
     
-    .info-panel p {
+    #info-overlay p {
         display: none;
     }
     
-    .btn-upload {
+    .model-upload-btn {
         margin-top: 0;
         padding: 6px 12px;
     }
     
-    .kamera-kontrolleri {
+    #camera-controls {
         bottom: 80px;
     }
 
@@ -338,3 +338,4 @@ body, html {
         scroll-snap-align: start;
     }
 }
+
