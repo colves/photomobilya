@@ -311,7 +311,7 @@ function updateCutaway() {
             name.includes('CEILING') || 
             name.includes('DOOR_WINDOW') || 
             name.includes('WINDOW_GLASSES')
-        ) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL');
+        ) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL') && !name.includes('FILLER');
         
         const isFloor = name.includes('FLOOR');
         const isFurniture = !isStructure && !isFloor;
@@ -363,6 +363,7 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+
 
 
 
