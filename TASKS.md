@@ -44,6 +44,7 @@
 - [x] Implement procedural lightweight geometries for appliances (Ovens and Hobs)
 - [x] Added UI toggle for 'Yalnizca Kapaklari Degistir'
 - [x] Correct `4f1974c` source review findings: normalize Turkish and ASCII I variants; connect render-on-demand to OrbitControls interaction and damping; keep `FLOOR` out of cutaway evidence
+- [ ] Repair `428619d` startup regression: restore `THREE.PerspectiveCamera` construction and remove temporary browser debug globals unless a documented diagnostic need remains
 - [ ] Validate cutaway, appliance, and missing-back-panel behavior visually on all three real GLBs
 - [ ] Profile and eliminate viewer stutter during inspection, material changes, and model swaps without reducing customer-facing visual quality
 - [ ] Perform visual acceptance tests on `mutfakdeneme1.glb`, `mutfakgunesler.glb`, and `mutfak1kat.glb` after the correction
