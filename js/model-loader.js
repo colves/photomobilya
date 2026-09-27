@@ -106,10 +106,7 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
           let ceilingMaterial = null;
           let ceilingBox = new THREE.Box3();
           
-          function safeUpper(str) {
-    if (!str) return '';
-    return str.replace(/i/g, '\u0130').replace(/\u0131/g, 'I').toUpperCase();
-}
+          
 
           currentModel.traverse((child) => {
               if (child.isMesh) {
@@ -638,6 +635,7 @@ export function reapplyMaterials() {
         applyMaterialsToModel(currentModel);
     }
 }
+
 
 
 

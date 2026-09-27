@@ -1,9 +1,9 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
 import { loadModel, setBlobUrl } from './model-loader.js';
-import { updateMaterialVariant, setOnlyDoorsMode } from './material-library.js';
+import { updateMaterialVariant, setOnlyDoorsMode, safeUpper } from './material-library.js';
 import { reapplyMaterials } from './model-loader.js';
 
 let scene, camera, renderer, controls, mainLight;
@@ -12,7 +12,7 @@ let tempGeometries = [];
 export async function initViewer(containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
-        showError("Görüntüleyici kapsayıcısı (container) bulunamadı.");
+        showError("GÃ¶rÃ¼ntÃ¼leyici kapsayÄ±cÄ±sÄ± (container) bulunamadÄ±.");
         return;
     }
 
@@ -33,7 +33,7 @@ export async function initViewer(containerId) {
         renderer.toneMappingExposure = 1.0;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         
-        // Gölge ayarları (Performans dostu PCFSoft)
+        // GÃ¶lge ayarlarÄ± (Performans dostu PCFSoft)
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         
@@ -46,14 +46,17 @@ export async function initViewer(containerId) {
         controls.minDistance = 1;
         controls.maxDistance = 15;
         controls.maxPolarAngle = Math.PI / 2 - 0.05; 
-        controls.target.set(0, 1, 0); 
+        controls.target.set(0, 1, 0);
+        controls.addEventListener('change', requestRenderIfNotRequested);
+        controls.addEventListener('start', requestRenderIfNotRequested);
+        controls.addEventListener('end', requestRenderIfNotRequested); 
 
-        // 6. HDRI Ortam Işığı Yükleme ve Stüdyo Işıkları
-        updateLoaderText("Ortam ışığı yükleniyor...");
+        // 6. HDRI Ortam IÅŸÄ±ÄŸÄ± YÃ¼kleme ve StÃ¼dyo IÅŸÄ±klarÄ±
+        updateLoaderText("Ortam Ä±ÅŸÄ±ÄŸÄ± yÃ¼kleniyor...");
         await loadHDRI('assets/hdr/photo_studio_01_1k.hdr');
         setupLighting();
 
-        // 7. Geçici Sahne Geometrisi
+        // 7. GeÃ§ici Sahne Geometrisi
         createTemporaryGeometry();
 
         // 8. Event Listeners
@@ -61,7 +64,7 @@ export async function initViewer(containerId) {
         setupFileInput();
         setupConfigPanel();
 
-        // 9. URL'den Model Yükleme Kontrolü
+        // 9. URL'den Model YÃ¼kleme KontrolÃ¼
         const urlParams = new URLSearchParams(window.location.search);
         const modelUrl = urlParams.get('model');
         
@@ -77,11 +80,11 @@ export async function initViewer(containerId) {
             hideLoader();
         }
 
-        // 10. Animasyon Döngüsü
+        // 10. Animasyon DÃ¶ngÃ¼sÃ¼
         
 
     } catch (error) {
-        showError("3D Sahne başlatılırken hata oluştu: " + error.message);
+        showError("3D Sahne baÅŸlatÄ±lÄ±rken hata oluÅŸtu: " + error.message);
     }
 }
 
@@ -102,7 +105,7 @@ function setupFileInput() {
                 showConfigPanel(); requestRenderIfNotRequested();
             }
             
-            // Aynı dosyayı tekrar seçebilmek için input'u sıfırla
+            // AynÄ± dosyayÄ± tekrar seÃ§ebilmek iÃ§in input'u sÄ±fÄ±rla
             event.target.value = '';
         });
     }
@@ -117,7 +120,7 @@ function setupConfigPanel() {
             const type = target.dataset.type;
             const val = target.dataset.val;
             
-            // Eger kapak ('door') se�ildiyse, t�m kapak butonlarindaki active sinifini kaldir
+            // Eger kapak ('door') seçildiyse, tüm kapak butonlarindaki active sinifini kaldir
             if (type === 'door') {
                 const allDoorBtns = document.querySelectorAll('.renk-btn[data-type="door"]');
                 allDoorBtns.forEach(b => b.classList.remove('active'));
@@ -143,7 +146,7 @@ function showConfigPanel() {
     const panel = document.getElementById('config-panel');
     if (panel) {
         panel.classList.remove('hidden');
-        // Zorlayıcı (fallback) stiller ekleyelim (CSS çakışmalarını önler)
+        // ZorlayÄ±cÄ± (fallback) stiller ekleyelim (CSS Ã§akÄ±ÅŸmalarÄ±nÄ± Ã¶nler)
         panel.style.display = 'block';
         panel.style.opacity = '1';
         panel.style.visibility = 'visible';
@@ -161,23 +164,23 @@ async function loadHDRI(path) {
             },
             undefined,
             (error) => {
-                reject(new Error("HDRI yüklenemedi."));
+                reject(new Error("HDRI yÃ¼klenemedi."));
             }
         );
     });
 }
 
 function setupLighting() {
-    // 1. Ana Işık (Key Light)
+    // 1. Ana IÅŸÄ±k (Key Light)
     mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    mainLight.position.set(5, 8, 5); // Varsayılan geçici konum
+    mainLight.position.set(5, 8, 5); // VarsayÄ±lan geÃ§ici konum
     mainLight.castShadow = true;
 
     mainLight.shadow.mapSize.width = 1024;
     mainLight.shadow.mapSize.height = 1024;
     mainLight.shadow.bias = -0.0005;
 
-    // Geçici sınırlar (Model yüklenince updateDynamicLighting ile değişecek)
+    // GeÃ§ici sÄ±nÄ±rlar (Model yÃ¼klenince updateDynamicLighting ile deÄŸiÅŸecek)
     mainLight.shadow.camera.near = 0.5;
     mainLight.shadow.camera.far = 25;
     mainLight.shadow.camera.left = -6;
@@ -186,24 +189,24 @@ function setupLighting() {
     mainLight.shadow.camera.bottom = -6;
     scene.add(mainLight);
 
-    // 2. Dolgu Işığı (Fill Light)
+    // 2. Dolgu IÅŸÄ±ÄŸÄ± (Fill Light)
     const fillLight = new THREE.DirectionalLight(0xe4eaf5, 0.5); 
     fillLight.position.set(-5, 4, -5);
     fillLight.castShadow = false;
     scene.add(fillLight);
 
-    // 3. Genel Ambiyans Işığı
+    // 3. Genel Ambiyans IÅŸÄ±ÄŸÄ±
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(ambientLight);
 }
 
 /**
- * Yüklenen modelin boyutlarına göre ana ışığın pozisyonunu ve gölge alanını ayarlar.
+ * YÃ¼klenen modelin boyutlarÄ±na gÃ¶re ana Ä±ÅŸÄ±ÄŸÄ±n pozisyonunu ve gÃ¶lge alanÄ±nÄ± ayarlar.
  */
 export function updateDynamicLighting(center, maxDim) {
     if (!mainLight) return;
     
-    // Işığı modelin merkezine göre çapraz üst köşeye yerleştir
+    // IÅŸÄ±ÄŸÄ± modelin merkezine gÃ¶re Ã§apraz Ã¼st kÃ¶ÅŸeye yerleÅŸtir
     const lightDistance = maxDim * 1.2;
     mainLight.position.set(
         center.x + lightDistance, 
@@ -211,16 +214,16 @@ export function updateDynamicLighting(center, maxDim) {
         center.z + lightDistance
     );
     mainLight.target.position.copy(center);
-    scene.add(mainLight.target); // Hedefin sahnede güncellenmesi için eklenmesi gerekir
+    scene.add(mainLight.target); // Hedefin sahnede gÃ¼ncellenmesi iÃ§in eklenmesi gerekir
 
-    // Gölge kamera sınırlarını modelin tamamını güvenle kaplayacak şekilde dinamik yap
+    // GÃ¶lge kamera sÄ±nÄ±rlarÄ±nÄ± modelin tamamÄ±nÄ± gÃ¼venle kaplayacak ÅŸekilde dinamik yap
     const shadowArea = maxDim * 0.8;
     mainLight.shadow.camera.left = -shadowArea;
     mainLight.shadow.camera.right = shadowArea;
     mainLight.shadow.camera.top = shadowArea;
     mainLight.shadow.camera.bottom = -shadowArea;
     
-    // Near/Far sınırları
+    // Near/Far sÄ±nÄ±rlarÄ±
     mainLight.shadow.camera.near = 0.1;
     mainLight.shadow.camera.far = maxDim * 3;
     
@@ -295,7 +298,7 @@ function updateCutaway() {
 
     for (let i = 0; i < allIntersects.length; i++) {
         const hitObj = allIntersects[i].object;
-        const name = hitObj.name.toUpperCase();
+        const name = safeUpper(hitObj.name);
         
         const isStrictFurniture = (
             name.includes('CAB_') || 
@@ -314,7 +317,7 @@ function updateCutaway() {
             name.includes('WORKTOP') ||
             name.includes('PLINTH') ||
             name.includes('CORNICE')
-        );
+        ) && !name.includes('FLOOR');
 
         if (isStrictFurniture) {
             if (objectToHide) hasFurnitureBehind = true;
@@ -342,18 +345,18 @@ function updateCutaway() {
     }
 
     if (objectToHide && hasFurnitureBehind) {
-        const hideName = objectToHide.name.toUpperCase();
+        const hideName = safeUpper(objectToHide.name);
         const hideList = [];
         
         if (hideName.includes('CEILING')) {
             wallAndCeilingMeshes.forEach(m => {
-                if (m.name.toUpperCase().includes('CEILING')) hideList.push(m);
+                if (safeUpper(m.name).includes('CEILING')) hideList.push(m);
             });
         } else if (hideName.includes('DOOR_WINDOW') || hideName.includes('WINDOW_GLASSES') || hideName.includes('PORAL')) {
             const hideBox = new THREE.Box3().setFromObject(objectToHide);
             hideBox.expandByScalar(0.2); 
             wallAndCeilingMeshes.forEach(m => {
-                const n = m.name.toUpperCase();
+                const n = safeUpper(m.name);
                 if (n.includes('DOOR_WINDOW') || n.includes('WINDOW_GLASSES') || n.includes('PORAL')) {
                     const mBox = new THREE.Box3().setFromObject(m);
                     if (hideBox.intersectsBox(mBox)) {
@@ -410,7 +413,7 @@ export function buildRaycastLists(scene) {
     
     scene.traverse((child) => {
         if (child.isMesh) {
-            const name = child.name.toUpperCase();
+            const name = safeUpper(child.name);
             
             // Yapisal adaylar (Gizlenebilecek olanlar)
             const isStructure = (
@@ -451,6 +454,9 @@ export function buildRaycastLists(scene) {
         }
     });
 }
+
+
+
 
 
 

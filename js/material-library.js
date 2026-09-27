@@ -6,9 +6,9 @@ export function setOnlyDoorsMode(val) {
     onlyDoorsMode = val;
 }
 
-function safeUpper(str) {
+export function safeUpper(str) {
     if (!str) return '';
-    return str.replace(/i/g, '\u0130').replace(/\u0131/g, 'I').toUpperCase();
+    return str.replace(/[i\u0131\u0130I]/g, 'I').toUpperCase();
 }
 
 const materials = {
@@ -183,6 +183,8 @@ export function addProceduralApplianceDetails(mesh, name, box, size, center, mat
         });
     }
 }
+
+
 
 
 
