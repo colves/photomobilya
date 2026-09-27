@@ -76,3 +76,15 @@ Reason:
 Establish a consistent polished presentation look while keeping the first web prototype lightweight.
 
 Status: Active
+
+---
+
+## D-007 — ADEKO layer names are the material and cutaway contract
+
+Decision:
+Use the manually verified ADEKO layer names as the source of truth for material assignment and structural cutaway rules; do not expand matching by guesswork.
+
+Reason:
+Similar-looking names can represent cabinet construction, appliance details, or room structure, and broad matching has previously recolored or hidden the wrong geometry.
+
+Status: Active

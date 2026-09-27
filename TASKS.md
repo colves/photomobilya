@@ -38,6 +38,7 @@
 
 - [x] Finalize strict raycaster length and boundary checks for walls
 - [x] Clean up local temporary test scripts
+- [x] Audit manually classified ADEKO layer names against current viewer behavior
 
 ## Pending
 - [ ] Migrate standalone integration to Kapak repository

@@ -5,6 +5,9 @@ Stage: Final Visual Polish & Customer Presentation
 Currently working on:
 Finalizing exact Raycaster logic for upper cabinets and implementing premium PBR materials for appliances.
 
+Latest verified input:
+- ADEKO layer meanings were manually classified from `C:\Users\Colves\OneDrive\Masaüstü\mutfak.txt`; the next material/cutaway change must use this list rather than broaden name matching heuristics.
+
 Working:
 - Shared project-memory files are in place.
 - Standalone Three.js viewer is functional with robust model loading, camera controls, and inspect mode.
