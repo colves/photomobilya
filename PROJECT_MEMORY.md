@@ -34,9 +34,10 @@ Create a web-based, interactive 3D kitchen presentation experience for customers
 - Appliance direction: `APPLIANCES` covers fridge, oven, dishwasher, washer, hob and hood. Add lightweight, identifiable device geometry without pursuing photorealism; use verified names/bounds and shared optimized assets only. `PORAL`, `ENTS_FOR_HIDE`, `APP_BODY_CASE`, `SHELVES`, and `CAM_PRO` remain ambiguous and require model inspection before behavior is assigned.
 
 ## Special CAD Naming Convention Rules (Discovered 2026-09-27)
-- ACCESSORIES_MODELS: Typically represents appliance accessories like dishwasher buttons or bottle holders. Mapped safely to ppliance (metal).
-- CAM_PRO: Found as a child of a KAPAK door block (e.g. _0947X0422). Represents aluminum/glass door profiles ("Cam Profili"). Because it is inside a door block, it behaves as a door frame.
-- SHELVES: Non-glass shelves. Left as generic furniture.
-- WALL_BEAM: Structural wall beam. Mapped to wallCeiling and added to targeted structural cutaway list.
-- PORAL: Undefined, but added to structural cutaway list as requested, tied to door/window proximity grouping.
-- ENTS_FOR_HIDE, APP_BODY_CASE: Safely fall back to ppliance metal material if they contain APP_BODY or ENTS_FOR_HIDE.
+- ACCESSORIES_MODELS: Appliance accessory/control geometry; fixed appliance-metal scope.
+- CAM_PRO: Found as a child of a KAPAK door block (e.g. _0947X0422). Treat as a door-frame component only after verifying it is not glass.
+- SHELVES: Non-glass shelves; fixed generic furniture scope.
+- WALL_BEAM: Structural wall beam; fixed wall material and targeted-cutaway candidate.
+- PORAL: Structural window/door-related element; candidate only when it belongs to the occluding window/door package.
+- ENTS_FOR_HIDE and APP_BODY_CASE: Appliance-related parts; fixed appliance-metal scope.
+- `49eb261` introduced a door-only toggle plus procedural appliance and back-panel logic, but visual validation exposed unverified behavior. Do not describe those features as complete until the recorded review findings are fixed and tested on all three GLBs.
