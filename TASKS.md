@@ -39,18 +39,11 @@
 - [x] Finalize strict raycaster length and boundary checks for walls
 - [x] Clean up local temporary test scripts
 - [x] Audit manually classified ADEKO layer names against current viewer behavior
+- [x] Apply the user-confirmed material scopes, structural cutaway list, and optimized appliance-geometry rules
+- [x] Restrict generated CAB_BODY_WALL back panels to modules whose rear face is actually missing
+- [x] Implement procedural lightweight geometries for appliances (Ovens and Hobs)
+- [x] Added UI toggle for 'Yalnizca Kapaklari Degistir'
 
 ## Pending
-- [ ] Profile and eliminate viewer stutter during inspection, material changes, and model swaps without reducing customer-facing visual quality
-- [ ] Apply the user-confirmed material scopes, structural cutaway list, and optimized appliance-geometry rules from `PROJECT_MEMORY.md`
-- [ ] Restrict generated `CAB_BODY_WALL` back panels to modules whose rear face is actually missing
 - [ ] Migrate standalone integration to Kapak repository
-- [ ] Test system stability and scaling logic with three distinct GLB files (Waiting for files)
-
-- [ ] Advanced PBR texturing for configurator materials
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
-- [ ] Prepare final viewer script for Kapak integration.
-
-
-
-

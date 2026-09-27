@@ -3,7 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
 import { loadModel, setBlobUrl } from './model-loader.js';
-import { updateMaterialVariant } from './material-library.js';
+import { updateMaterialVariant, setOnlyDoorsMode } from './material-library.js';
+import { reapplyMaterials } from './model-loader.js';
 
 let scene, camera, renderer, controls, mainLight;
 let tempGeometries = [];
@@ -147,6 +148,13 @@ function setupConfigPanel() {
             updateMaterialVariant(type, val);
         });
     });
+    const toggle = document.getElementById('only-doors-toggle');
+    if (toggle) {
+        toggle.addEventListener('change', (e) => {
+            setOnlyDoorsMode(e.target.checked);
+            reapplyMaterials();
+        });
+    }
 }
 
 function showConfigPanel() {
@@ -299,31 +307,53 @@ function updateCutaway() {
     const allIntersects = raycaster.intersectObject(scene, true)
         .filter(hit => hit.object.isMesh && hit.object.visible);
     
-    let objectToHide = null;
+        let objectToHide = null;
     let hasFurnitureBehind = false;
 
     for (let i = 0; i < allIntersects.length; i++) {
         const hitObj = allIntersects[i].object;
         const name = hitObj.name.toUpperCase();
         
+        const isStrictFurniture = (
+            name.includes('CAB_') || 
+            name.includes('PANEL') || 
+            name.includes('SHELV') || 
+            name.includes('HANDLE') || 
+            name.includes('KNOB') || 
+            name.includes('APP') || 
+            name.includes('BULSK') || 
+            name.includes('REFRIG') || 
+            name.includes('FRIDGE') ||
+            name.includes('OVEN') || 
+            name.includes('SINK') || 
+            name.includes('ARMATURE') || 
+            name.includes('SANITARY') || 
+            name.includes('WORKTOP') ||
+            name.includes('PLINTH') ||
+            name.includes('CORNICE')
+        );
+
+        if (isStrictFurniture) {
+            if (objectToHide) hasFurnitureBehind = true;
+            break;
+        }
+        
         const isStructure = (
             name.includes('WALLS') || 
+            name.includes('WALL_BEAM') || 
             name.includes('CEILING') || 
+            name.includes('FLOOR') || 
             name.includes('DOOR_WINDOW') || 
-            name.includes('WINDOW_GLASSES')
-        ) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL') && !name.includes('FILLER');
-        
-        const isFloor = name.includes('FLOOR');
-        const isFurniture = !isStructure && !isFloor;
-        
+            name.includes('WINDOW_GLASSES') || 
+            name.includes('PORAL')
+        );
+
         if (isStructure) {
             if (!objectToHide && !hitObj.userData.unsafeForCutaway) {
                 objectToHide = hitObj;
             }
-        } else if (isFurniture) {
-            if (objectToHide) {
-                hasFurnitureBehind = true;
-            }
+        } else if (!name.includes('FILLER')) {
+            if (objectToHide) hasFurnitureBehind = true;
             break;
         }
     }
@@ -336,10 +366,17 @@ function updateCutaway() {
             wallAndCeilingMeshes.forEach(m => {
                 if (m.name.toUpperCase().includes('CEILING')) hideList.push(m);
             });
-        } else if (hideName.includes('DOOR_WINDOW') || hideName.includes('WINDOW_GLASSES')) {
+        } else if (hideName.includes('DOOR_WINDOW') || hideName.includes('WINDOW_GLASSES') || hideName.includes('PORAL')) {
+            const hideBox = new THREE.Box3().setFromObject(objectToHide);
+            hideBox.expandByScalar(0.2); 
             wallAndCeilingMeshes.forEach(m => {
                 const n = m.name.toUpperCase();
-                if (n.includes('DOOR_WINDOW') || n.includes('WINDOW_GLASSES')) hideList.push(m);
+                if (n.includes('DOOR_WINDOW') || n.includes('WINDOW_GLASSES') || n.includes('PORAL')) {
+                    const mBox = new THREE.Box3().setFromObject(m);
+                    if (hideBox.intersectsBox(mBox)) {
+                        hideList.push(m);
+                    }
+                }
             });
         } else {
             hideList.push(objectToHide);
@@ -351,7 +388,6 @@ function updateCutaway() {
         });
     }
 }
-
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -363,6 +399,11 @@ function animate() {
     updateCutaway();
     renderer.render(scene, camera);
 }
+
+
+
+
+
 
 
 
