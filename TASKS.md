@@ -41,6 +41,7 @@
 - [x] Audit manually classified ADEKO layer names against current viewer behavior
 
 ## Pending
+- [ ] Apply the user-confirmed material scopes, structural cutaway list, and optimized appliance-geometry rules from `PROJECT_MEMORY.md`
 - [ ] Restrict generated `CAB_BODY_WALL` back panels to modules whose rear face is actually missing
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Test system stability and scaling logic with three distinct GLB files (Waiting for files)
