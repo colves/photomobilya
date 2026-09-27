@@ -41,6 +41,7 @@
 - [x] Audit manually classified ADEKO layer names against current viewer behavior
 
 ## Pending
+- [ ] Restrict generated `CAB_BODY_WALL` back panels to modules whose rear face is actually missing
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Test system stability and scaling logic with three distinct GLB files (Waiting for files)
 
