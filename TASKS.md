@@ -43,7 +43,8 @@
 - [x] Restrict generated CAB_BODY_WALL back panels to modules whose rear face is actually missing
 - [x] Implement procedural lightweight geometries for appliances (Ovens and Hobs)
 - [x] Added UI toggle for 'Yalnizca Kapaklari Degistir'
-- [ ] Correct `4f1974c` review findings: normalize both Turkish `İ/ı` and ASCII `i/I` into ASCII comparison keys; connect render-on-demand to OrbitControls interaction and damping; keep `FLOOR` out of all cutaway evidence; then validate appliance and back-panel behavior
+- [x] Correct `4f1974c` source review findings: normalize Turkish and ASCII I variants; connect render-on-demand to OrbitControls interaction and damping; keep `FLOOR` out of cutaway evidence
+- [ ] Validate cutaway, appliance, and missing-back-panel behavior visually on all three real GLBs
 - [ ] Profile and eliminate viewer stutter during inspection, material changes, and model swaps without reducing customer-facing visual quality
 - [ ] Perform visual acceptance tests on `mutfakdeneme1.glb`, `mutfakgunesler.glb`, and `mutfak1kat.glb` after the correction
 

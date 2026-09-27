@@ -40,5 +40,5 @@ Create a web-based, interactive 3D kitchen presentation experience for customers
 - WALL_BEAM: Structural wall beam; fixed wall material and targeted-cutaway candidate.
 - PORAL: Structural window/door-related element; candidate only when it belongs to the occluding window/door package.
 - ENTS_FOR_HIDE and APP_BODY_CASE: Appliance-related parts; fixed appliance-metal scope.
-- `49eb261` introduced a door-only toggle plus procedural appliance and back-panel logic; `a78b4a6` and `4f1974c` attempted render-on-demand and revised cutaway handling. Do not describe these as complete until the recorded review findings are fixed and tested on all three GLBs.
+- `49eb261` introduced a door-only toggle plus procedural appliance and back-panel logic; `a78b4a6` and `4f1974c` attempted render-on-demand and revised cutaway handling. `9f6f0ec` corrected the ASCII normalization and added OrbitControls render requests. Visual and measured performance acceptance across all three GLBs remains required.
 
