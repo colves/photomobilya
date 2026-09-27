@@ -11,3 +11,4 @@ PhotoMobilya standalone viewer has the latest implementation at `9f6f0ec`. Its s
 ## Next Phase
 - Run visual and measured performance acceptance tests on all three real GLB files, then correct any discovered behavior.
 - Standalone integration into the live Kapak repository only after explicit approval.
+

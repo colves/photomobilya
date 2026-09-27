@@ -1,4 +1,4 @@
-﻿import * as THREE from 'three';
+import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { hideLoader, updateLoaderText, showError } from './loader.js';
@@ -7,22 +7,25 @@ import { updateMaterialVariant, setOnlyDoorsMode, safeUpper } from './material-l
 import { reapplyMaterials } from './model-loader.js';
 
 let scene, camera, renderer, controls, mainLight;
+window.scene = scene; window.camera = camera; window.controls = controls;
 let tempGeometries = [];
 
 export async function initViewer(containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
-        showError("GÃ¶rÃ¼ntÃ¼leyici kapsayÄ±cÄ±sÄ± (container) bulunamadÄ±.");
+        showError("Görüntüleyici kapsayıcısı (container) bulunamadı.");
         return;
     }
 
     try {
         // 1. Sahne (Scene)
         scene = new THREE.Scene();
+window.scene = scene;
         scene.background = new THREE.Color('#f5f5f5');
 
         // 2. Kamera (Camera)
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        
+window.camera = camera;
         camera.position.set(4, 3, 5);
 
         // 3. Renderer
@@ -33,7 +36,7 @@ export async function initViewer(containerId) {
         renderer.toneMappingExposure = 1.0;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         
-        // GÃ¶lge ayarlarÄ± (Performans dostu PCFSoft)
+        // Gölge ayarları (Performans dostu PCFSoft)
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         
@@ -41,6 +44,7 @@ export async function initViewer(containerId) {
 
         // 4. Kontroller (OrbitControls)
         controls = new OrbitControls(camera, renderer.domElement);
+window.controls = controls;
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 1;
@@ -51,12 +55,12 @@ export async function initViewer(containerId) {
         controls.addEventListener('start', requestRenderIfNotRequested);
         controls.addEventListener('end', requestRenderIfNotRequested); 
 
-        // 6. HDRI Ortam IÅŸÄ±ÄŸÄ± YÃ¼kleme ve StÃ¼dyo IÅŸÄ±klarÄ±
-        updateLoaderText("Ortam Ä±ÅŸÄ±ÄŸÄ± yÃ¼kleniyor...");
+        // 6. HDRI Ortam Işığı Yükleme ve Stüdyo Işıkları
+        updateLoaderText("Ortam ışığı yükleniyor...");
         await loadHDRI('assets/hdr/photo_studio_01_1k.hdr');
         setupLighting();
 
-        // 7. GeÃ§ici Sahne Geometrisi
+        // 7. Geçici Sahne Geometrisi
         createTemporaryGeometry();
 
         // 8. Event Listeners
@@ -64,7 +68,7 @@ export async function initViewer(containerId) {
         setupFileInput();
         setupConfigPanel();
 
-        // 9. URL'den Model YÃ¼kleme KontrolÃ¼
+        // 9. URL'den Model Yükleme Kontrolü
         const urlParams = new URLSearchParams(window.location.search);
         const modelUrl = urlParams.get('model');
         
@@ -80,11 +84,11 @@ export async function initViewer(containerId) {
             hideLoader();
         }
 
-        // 10. Animasyon DÃ¶ngÃ¼sÃ¼
+        // 10. Animasyon Döngüsü
         
 
     } catch (error) {
-        showError("3D Sahne baÅŸlatÄ±lÄ±rken hata oluÅŸtu: " + error.message);
+        showError("3D Sahne başlatılırken hata oluştu: " + error.message);
     }
 }
 
@@ -105,7 +109,7 @@ function setupFileInput() {
                 showConfigPanel(); requestRenderIfNotRequested();
             }
             
-            // AynÄ± dosyayÄ± tekrar seÃ§ebilmek iÃ§in input'u sÄ±fÄ±rla
+            // Aynı dosyayı tekrar seçebilmek için input'u sıfırla
             event.target.value = '';
         });
     }
@@ -120,7 +124,7 @@ function setupConfigPanel() {
             const type = target.dataset.type;
             const val = target.dataset.val;
             
-            // Eger kapak ('door') seçildiyse, tüm kapak butonlarindaki active sinifini kaldir
+            // Eger kapak ('door') se�ildiyse, t�m kapak butonlarindaki active sinifini kaldir
             if (type === 'door') {
                 const allDoorBtns = document.querySelectorAll('.renk-btn[data-type="door"]');
                 allDoorBtns.forEach(b => b.classList.remove('active'));
@@ -146,7 +150,7 @@ function showConfigPanel() {
     const panel = document.getElementById('config-panel');
     if (panel) {
         panel.classList.remove('hidden');
-        // ZorlayÄ±cÄ± (fallback) stiller ekleyelim (CSS Ã§akÄ±ÅŸmalarÄ±nÄ± Ã¶nler)
+        // Zorlayıcı (fallback) stiller ekleyelim (CSS çakışmalarını önler)
         panel.style.display = 'block';
         panel.style.opacity = '1';
         panel.style.visibility = 'visible';
@@ -164,23 +168,23 @@ async function loadHDRI(path) {
             },
             undefined,
             (error) => {
-                reject(new Error("HDRI yÃ¼klenemedi."));
+                reject(new Error("HDRI yüklenemedi."));
             }
         );
     });
 }
 
 function setupLighting() {
-    // 1. Ana IÅŸÄ±k (Key Light)
+    // 1. Ana Işık (Key Light)
     mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    mainLight.position.set(5, 8, 5); // VarsayÄ±lan geÃ§ici konum
+    mainLight.position.set(5, 8, 5); // Varsayılan geçici konum
     mainLight.castShadow = true;
 
     mainLight.shadow.mapSize.width = 1024;
     mainLight.shadow.mapSize.height = 1024;
     mainLight.shadow.bias = -0.0005;
 
-    // GeÃ§ici sÄ±nÄ±rlar (Model yÃ¼klenince updateDynamicLighting ile deÄŸiÅŸecek)
+    // Geçici sınırlar (Model yüklenince updateDynamicLighting ile değişecek)
     mainLight.shadow.camera.near = 0.5;
     mainLight.shadow.camera.far = 25;
     mainLight.shadow.camera.left = -6;
@@ -189,24 +193,24 @@ function setupLighting() {
     mainLight.shadow.camera.bottom = -6;
     scene.add(mainLight);
 
-    // 2. Dolgu IÅŸÄ±ÄŸÄ± (Fill Light)
+    // 2. Dolgu Işığı (Fill Light)
     const fillLight = new THREE.DirectionalLight(0xe4eaf5, 0.5); 
     fillLight.position.set(-5, 4, -5);
     fillLight.castShadow = false;
     scene.add(fillLight);
 
-    // 3. Genel Ambiyans IÅŸÄ±ÄŸÄ±
+    // 3. Genel Ambiyans Işığı
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(ambientLight);
 }
 
 /**
- * YÃ¼klenen modelin boyutlarÄ±na gÃ¶re ana Ä±ÅŸÄ±ÄŸÄ±n pozisyonunu ve gÃ¶lge alanÄ±nÄ± ayarlar.
+ * Yüklenen modelin boyutlarına göre ana ışığın pozisyonunu ve gölge alanını ayarlar.
  */
 export function updateDynamicLighting(center, maxDim) {
     if (!mainLight) return;
     
-    // IÅŸÄ±ÄŸÄ± modelin merkezine gÃ¶re Ã§apraz Ã¼st kÃ¶ÅŸeye yerleÅŸtir
+    // Işığı modelin merkezine göre çapraz üst köşeye yerleştir
     const lightDistance = maxDim * 1.2;
     mainLight.position.set(
         center.x + lightDistance, 
@@ -214,16 +218,16 @@ export function updateDynamicLighting(center, maxDim) {
         center.z + lightDistance
     );
     mainLight.target.position.copy(center);
-    scene.add(mainLight.target); // Hedefin sahnede gÃ¼ncellenmesi iÃ§in eklenmesi gerekir
+    scene.add(mainLight.target); // Hedefin sahnede güncellenmesi için eklenmesi gerekir
 
-    // GÃ¶lge kamera sÄ±nÄ±rlarÄ±nÄ± modelin tamamÄ±nÄ± gÃ¼venle kaplayacak ÅŸekilde dinamik yap
+    // Gölge kamera sınırlarını modelin tamamını güvenle kaplayacak şekilde dinamik yap
     const shadowArea = maxDim * 0.8;
     mainLight.shadow.camera.left = -shadowArea;
     mainLight.shadow.camera.right = shadowArea;
     mainLight.shadow.camera.top = shadowArea;
     mainLight.shadow.camera.bottom = -shadowArea;
     
-    // Near/Far sÄ±nÄ±rlarÄ±
+    // Near/Far sınırları
     mainLight.shadow.camera.near = 0.1;
     mainLight.shadow.camera.far = maxDim * 3;
     
@@ -454,6 +458,7 @@ export function buildRaycastLists(scene) {
         }
     });
 }
+
 
 
 
