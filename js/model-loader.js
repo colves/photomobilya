@@ -19,9 +19,9 @@ function disposeModel(scene, model) {
     model.traverse((child) => {
         if (child.isMesh) {
             if (child.geometry) child.geometry.dispose();
-            // Not: Yeni sistemde materyaller ortak (library) olduğu için 
-            // eski modelin silinmesi sırasında library materyallerini dispose etmemeliyiz.
-            // Bu nedenle sadece geometrileri siliyoruz.
+            if (child.material && child.material.userData && child.material.userData.isProcedural) {
+                child.material.dispose();
+            }
         }
     });
 }
@@ -97,7 +97,7 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         // 1. Kapı/Pencere gibi mutfak dışı yapı elemanlarını gizle (büyük gri paneller dahil)
         // 2. Adeko yazısını gizle
         // 3. Arkalığı olmayan üst modüllere (CAB_BODY_WALL) arka panel ekle
-                  const newBackPanels = [];
+                            const newBackPanels = [];
           const newProceduralDetails = [];
           const modelBoundingBox = new THREE.Box3().setFromObject(currentModel);
           const roomCenter = modelBoundingBox.getCenter(new THREE.Vector3());
@@ -106,9 +106,14 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
           let ceilingMaterial = null;
           let ceilingBox = new THREE.Box3();
           
+          function safeUpper(str) {
+              if (!str) return '';
+              return str.replace(/i/g, 'I').replace(/i/g, 'I').toUpperCase();
+          }
+
           currentModel.traverse((child) => {
               if (child.isMesh) {
-                  const name = child.name.toUpperCase();
+                  const name = safeUpper(child.name);
                   
                   if (name.includes('APP_BODY_BASE')) {
                       const box = new THREE.Box3().setFromObject(child);
@@ -134,49 +139,82 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                       const center = box.getCenter(new THREE.Vector3());
                       const isDepthZ = size.z < size.x;
                       
-                      const rayDir = new THREE.Vector3(0, 0, center.z > roomCenter.z ? 1 : -1);
-                      const localRaycaster = new THREE.Raycaster(center, rayDir);
-                      localRaycaster.ray.origin.y += 0.01;
-                      const intersects = localRaycaster.intersectObject(child, false);
-                      
-                      if (intersects.length === 0) {
-                          const panelThickness = 0.005; // 5mm
-                          let pWidth = size.x;
-                          let pHeight = size.y;
-                          let pDepth = size.z;
+                      const posAttr = child.geometry.attributes.position;
+                      const index = child.geometry.index;
+                      if (posAttr) {
+                          let rearWorldZ = isDepthZ ? (center.z > roomCenter.z ? box.max.z : box.min.z) : center.z;
+                          let rearWorldX = !isDepthZ ? (center.x > roomCenter.x ? box.max.x : box.min.x) : center.x;
+                          let triCountAtRear = 0;
                           
-                          let px = center.x;
-                          let py = center.y;
-                          let pz = center.z;
+                          const v0 = new THREE.Vector3(); const v1 = new THREE.Vector3(); const v2 = new THREE.Vector3();
                           
-                          if (isDepthZ) {
-                              pDepth = panelThickness;
-                              if (center.z < roomCenter.z) pz = box.min.z + panelThickness/2;
-                              else pz = box.max.z - panelThickness/2;
+                          const checkTri = (a, b, c) => {
+                              v0.fromBufferAttribute(posAttr, a); v1.fromBufferAttribute(posAttr, b); v2.fromBufferAttribute(posAttr, c);
+                              child.localToWorld(v0); child.localToWorld(v1); child.localToWorld(v2);
+                              const tolerance = 0.05;
+                              if (isDepthZ) {
+                                  if (Math.abs(v0.z - rearWorldZ) < tolerance && Math.abs(v1.z - rearWorldZ) < tolerance && Math.abs(v2.z - rearWorldZ) < tolerance) triCountAtRear++;
+                              } else {
+                                  if (Math.abs(v0.x - rearWorldX) < tolerance && Math.abs(v1.x - rearWorldX) < tolerance && Math.abs(v2.x - rearWorldX) < tolerance) triCountAtRear++;
+                              }
+                          };
+                          
+                          if (index) {
+                              for (let i = 0; i < index.count; i += 3) checkTri(index.getX(i), index.getX(i+1), index.getX(i+2));
                           } else {
-                              pWidth = panelThickness;
-                              if (center.x < roomCenter.x) px = box.min.x + panelThickness/2;
-                              else px = box.max.x - panelThickness/2;
+                              for (let i = 0; i < posAttr.count; i += 3) checkTri(i, i+1, i+2);
                           }
                           
-                          const panelGeo = new THREE.BoxGeometry(pWidth, pHeight, pDepth);
-                          const panelMesh = new THREE.Mesh(panelGeo, child.material);
-                          
-                          panelMesh.position.set(px, py, pz);
-                          currentModel.worldToLocal(panelMesh.position);
-                          
-                          const parentWorldScale = new THREE.Vector3();
-                          currentModel.getWorldScale(parentWorldScale);
-                          panelMesh.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
-                          
-                          panelMesh.name = child.name + '_BACK_PANEL';
-                          panelMesh.userData.isForceHidden = false;
-                          newBackPanels.push(panelMesh);
+                          if (triCountAtRear < 2) {
+                              const panelThickness = 0.005;
+                              let pWidth = size.x; let pHeight = size.y; let pDepth = size.z;
+                              let px = center.x; let py = center.y; let pz = center.z;
+                              
+                              if (isDepthZ) {
+                                  pDepth = panelThickness;
+                                  if (center.z < roomCenter.z) pz = box.min.z + panelThickness/2;
+                                  else pz = box.max.z - panelThickness/2;
+                              } else {
+                                  pWidth = panelThickness;
+                                  if (center.x < roomCenter.x) px = box.min.x + panelThickness/2;
+                                  else px = box.max.x - panelThickness/2;
+                              }
+                              
+                              const panelGeo = new THREE.BoxGeometry(pWidth, pHeight, pDepth);
+                              const panelMesh = new THREE.Mesh(panelGeo, child.material);
+                              
+                              panelMesh.position.set(px, py, pz);
+                              currentModel.worldToLocal(panelMesh.position);
+                              const parentWorldScale = new THREE.Vector3();
+                              currentModel.getWorldScale(parentWorldScale);
+                              panelMesh.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                              
+                              panelMesh.name = child.name + '_BACK_PANEL';
+                              panelMesh.userData.isForceHidden = false;
+                              newBackPanels.push(panelMesh);
+                          }
                       }
                   }
                   
                   // Procedural Appliances
-                  if (name.includes('OVEN') || name.includes('FIRIN') || name.includes('HOB') || name.includes('OCAK')) {
+                  let current = child.parent;
+                  let deviceType = null;
+                  while (current && current.type !== 'Scene') {
+                      let pName = safeUpper(current.name);
+                      if (pName.includes('OVEN') || pName.includes('FIRIN')) deviceType = 'OVEN';
+                      else if (pName.includes('HOB') || pName.includes('OCAK')) deviceType = 'HOB';
+                      else if (pName.includes('BULSK') || pName.includes('WASHER')) deviceType = 'WASHER';
+                      else if (pName.includes('FRIDGE') || pName.includes('REFRIG') || pName.includes('BUZDOLABI')) deviceType = 'FRIDGE';
+                      else if (pName.includes('HOOD') || pName.includes('DAVLUMBAZ')) deviceType = 'HOOD';
+                      current = current.parent;
+                  }
+                  
+                  if (!deviceType) {
+                      if (name.includes('OVEN') || name.includes('FIRIN')) deviceType = 'OVEN';
+                      else if (name.includes('HOB') || name.includes('OCAK')) deviceType = 'HOB';
+                  }
+
+                  if (deviceType) {
                       const box = new THREE.Box3().setFromObject(child);
                       const size = box.getSize(new THREE.Vector3());
                       const center = box.getCenter(new THREE.Vector3());
@@ -185,44 +223,72 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                       const parentWorldScale = new THREE.Vector3();
                       currentModel.getWorldScale(parentWorldScale);
                       
-                      if (name.includes('OVEN') || name.includes('FIRIN')) {
-                          const glassGeo = new THREE.BoxGeometry(
-                              isDepthZ ? size.x * 0.8 : size.x + 0.004, 
-                              size.y * 0.7, 
-                              isDepthZ ? size.z + 0.004 : size.z * 0.8
-                          );
-                          const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x050505, metalness: 0.2, roughness: 0.1, clearcoat: 1.0 });
-                          const glass = new THREE.Mesh(glassGeo, glassMat);
-                          glass.position.copy(center);
-                          currentModel.worldToLocal(glass.position);
-                          glass.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
-                          glass.name = 'PROC_OVEN_GLASS';
-                          newProceduralDetails.push(glass);
-                      } else if (name.includes('HOB') || name.includes('OCAK')) {
-                          const burnerGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.01, 16);
-                          const burnerMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
-                          const pos = [
-                              [size.x * 0.25, size.z * 0.25], [-size.x * 0.25, size.z * 0.25],
-                              [size.x * 0.25, -size.z * 0.25], [-size.x * 0.25, -size.z * 0.25]
-                          ];
-                          pos.forEach((p, idx) => {
-                              const burner = new THREE.Mesh(burnerGeo, burnerMat);
-                              burner.position.copy(center);
-                              burner.position.y = box.max.y + 0.005;
-                              burner.position.x += p[0];
-                              burner.position.z += p[1];
-                              currentModel.worldToLocal(burner.position);
-                              burner.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
-                              burner.name = 'PROC_HOB_BURNER_' + idx;
-                              newProceduralDetails.push(burner);
-                          });
+                      if (deviceType === 'OVEN') {
+                          // Check if we haven't already added details for this block
+                          if (size.x > 0.4 && size.y > 0.4 && !child.userData.hasProceduralDetails) {
+                              child.userData.hasProceduralDetails = true;
+                              const glassGeo = new THREE.BoxGeometry(isDepthZ ? size.x * 0.8 : size.x + 0.004, size.y * 0.7, isDepthZ ? size.z + 0.004 : size.z * 0.8);
+                              const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x050505, metalness: 0.2, roughness: 0.1, clearcoat: 1.0 });
+                              glassMat.userData.isProcedural = true;
+                              const glass = new THREE.Mesh(glassGeo, glassMat);
+                              glass.position.copy(center);
+                              currentModel.worldToLocal(glass.position);
+                              glass.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                              glass.name = 'PROC_OVEN_GLASS';
+                              newProceduralDetails.push(glass);
+                          }
+                      } else if (deviceType === 'HOB') {
+                          if (size.x > 0.3 && !child.userData.hasProceduralDetails) {
+                              child.userData.hasProceduralDetails = true;
+                              const burnerGeo = new THREE.CylinderGeometry(Math.min(size.x, size.z) * 0.15, Math.min(size.x, size.z) * 0.15, 0.01, 16);
+                              const burnerMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+                              burnerMat.userData.isProcedural = true;
+                              const pos = [[size.x * 0.25, size.z * 0.25], [-size.x * 0.25, size.z * 0.25], [size.x * 0.25, -size.z * 0.25], [-size.x * 0.25, -size.z * 0.25]];
+                              pos.forEach((p, idx) => {
+                                  const burner = new THREE.Mesh(burnerGeo, burnerMat);
+                                  burner.position.copy(center);
+                                  burner.position.y = box.max.y + 0.005;
+                                  burner.position.x += p[0];
+                                  burner.position.z += p[1];
+                                  currentModel.worldToLocal(burner.position);
+                                  burner.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                                  burner.name = 'PROC_HOB_BURNER_' + idx;
+                                  newProceduralDetails.push(burner);
+                              });
+                          }
+                      } else if (deviceType === 'WASHER') {
+                          if (size.x > 0.4 && size.y > 0.4 && !child.userData.hasProceduralDetails) {
+                              child.userData.hasProceduralDetails = true;
+                              const panelGeo = new THREE.BoxGeometry(isDepthZ ? size.x * 0.9 : size.x + 0.004, size.y * 0.15, isDepthZ ? size.z + 0.004 : size.z * 0.9);
+                              const panelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+                              panelMat.userData.isProcedural = true;
+                              const panel = new THREE.Mesh(panelGeo, panelMat);
+                              panel.position.copy(center);
+                              panel.position.y = box.max.y - size.y * 0.1;
+                              currentModel.worldToLocal(panel.position);
+                              panel.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                              panel.name = 'PROC_WASHER_PANEL';
+                              newProceduralDetails.push(panel);
+                          }
+                      } else if (deviceType === 'FRIDGE') {
+                          if (size.y > 1.0 && size.x > 0.4 && !child.userData.hasProceduralDetails) {
+                              child.userData.hasProceduralDetails = true;
+                              const splitGeo = new THREE.BoxGeometry(isDepthZ ? size.x + 0.006 : 0.01, 0.02, isDepthZ ? 0.01 : size.z + 0.006);
+                              const splitMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+                              splitMat.userData.isProcedural = true;
+                              const split = new THREE.Mesh(splitGeo, splitMat);
+                              split.position.copy(center);
+                              currentModel.worldToLocal(split.position);
+                              split.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                              split.name = 'PROC_FRIDGE_SPLIT';
+                              newProceduralDetails.push(split);
+                          }
                       }
                   }
               }
           });
           
-          newProceduralDetails.forEach(p => currentModel.add(p));
-          newBackPanels.forEach(p => currentModel.add(p));
+          newProceduralDetails.forEach(p => currentModel.add(p));          newBackPanels.forEach(p => currentModel.add(p));
           
           if (ceilingMaterial && maxCeilingY !== -Infinity && !ceilingBox.isEmpty()) {
               const cSize = ceilingBox.getSize(new THREE.Vector3());
@@ -572,6 +638,8 @@ export function reapplyMaterials() {
         applyMaterialsToModel(currentModel);
     }
 }
+
+
 
 
 

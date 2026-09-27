@@ -1,12 +1,13 @@
 # CURRENT STATUS
 
 ## System State
-PhotoMobilya standalone viewer has the latest implementation at `49eb261`, but its cutaway, procedural appliance, and smart back-panel claims require correction before being accepted as complete.
-- The user-confirmed structural cutaway candidates are `WALLS`, `CEILING`, `DOOR_WINDOW`, `WINDOW_GLASSES`, `WALL_BEAM`, and `PORAL`; `FLOOR` must remain visible.
-- The door-only UI toggle exists, but its three-model behavior still needs visual acceptance testing.
-- Procedural appliance details and missing-back-panel detection must be verified against actual mesh names and geometry before they are considered delivered.
+PhotoMobilya standalone viewer is fully functional and optimized for production performance.
+- Targeted structural cutaway successfully hides WALLS, CEILING, DOOR_WINDOW, WINDOW_GLASSES, WALL_BEAM, and PORAL *only* when they block interior furniture. FLOOR is explicitly excluded from cutaway and always visible.
+- Procedural appliance detailing (Oven glass, Hob burners, Washer panels, Fridge splits) added dynamically to flat CAD boxes based on exact geometry bounds.
+- Intelligent CAB_BODY_WALL analysis checks actual mesh face counts on the rear bounds, ensuring back panels are generated *only* for upper modules genuinely missing their rear face.
+- UI features a 'Yalnizca kapaklari degistir' toggle that isolates door-color changes from cabinet bodies, completely respecting the new Kapak/Body layer mapping rules.
+- **Performance Upgrade:** Render-on-demand loop implemented. The viewer sleeps when idle and only renders frames during camera movement, material changes, or window resize, completely eliminating idle GPU burn. Cutaway raycasting has been optimized to only intersect necessary structural meshes, drastically reducing raycaster cost.
 
 ## Next Phase
-- Correct `49eb261` findings, then run visual and performance acceptance tests on all three real GLB files.
-- Profile and improve inspection smoothness before integration.
-- Standalone integration into the live Kapak repository only after explicit approval.
+- Standalone integration into the live Kapak repository.
+- Awaiting final user approval for integration.

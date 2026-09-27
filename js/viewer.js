@@ -57,7 +57,7 @@ export async function initViewer(containerId) {
         createTemporaryGeometry();
 
         // 8. Event Listeners
-        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('resize', () => { onWindowResize(); requestRenderIfNotRequested(); });
         setupFileInput();
         setupConfigPanel();
 
@@ -70,24 +70,15 @@ export async function initViewer(containerId) {
             if (success) {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
-                wallAndCeilingMeshes = [];
-                
-                scene.traverse((child) => {
-                    if (child.isMesh) {
-                        const name = child.name.toUpperCase();
-                        if ((name.includes('WALLS') || name.includes('CEILING') || name.includes('DOOR_WINDOW') || name.includes('WINDOW_GLASSES')) && !name.includes('CAB_BODY')) {
-                            wallAndCeilingMeshes.push(child);
-                        }
-                    }
-                });
-                showConfigPanel();
+                wallAndCeilingMeshes = registerStructuralMeshes(scene);
+                showConfigPanel(); requestRenderIfNotRequested();
             }
         } else {
             hideLoader();
         }
 
         // 10. Animasyon Döngüsü
-        renderer.setAnimationLoop(animate);
+        
 
     } catch (error) {
         showError("3D Sahne başlatılırken hata oluştu: " + error.message);
@@ -107,17 +98,8 @@ function setupFileInput() {
             if (success) {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
-                wallAndCeilingMeshes = [];
-                
-                scene.traverse((child) => {
-                    if (child.isMesh) {
-                        const name = child.name.toUpperCase();
-                        if ((name.includes('WALLS') || name.includes('CEILING') || name.includes('DOOR_WINDOW') || name.includes('WINDOW_GLASSES')) && !name.includes('CAB_BODY')) {
-                            wallAndCeilingMeshes.push(child);
-                        }
-                    }
-                });
-                showConfigPanel();
+                wallAndCeilingMeshes = registerStructuralMeshes(scene);
+                showConfigPanel(); requestRenderIfNotRequested();
             }
             
             // Aynı dosyayı tekrar seçebilmek için input'u sıfırla
@@ -145,14 +127,14 @@ function setupConfigPanel() {
             }
             
             target.classList.add('active');
-            updateMaterialVariant(type, val);
+            updateMaterialVariant(type, val); requestRenderIfNotRequested();
         });
     });
     const toggle = document.getElementById('only-doors-toggle');
     if (toggle) {
         toggle.addEventListener('change', (e) => {
             setOnlyDoorsMode(e.target.checked);
-            reapplyMaterials();
+            reapplyMaterials(); requestRenderIfNotRequested();
         });
     }
 }
@@ -276,6 +258,7 @@ function removeTemporaryGeometry() {
 
 let roomBoundingBox = null;
 let wallAndCeilingMeshes = [];
+let raycastMeshes = [];
 
 const raycaster = new THREE.Raycaster();
 let lastCameraPos = new THREE.Vector3();
@@ -304,7 +287,7 @@ function updateCutaway() {
     raycaster.set(camera.position, direction);
     raycaster.far = distance + 10.0;
 
-    const allIntersects = raycaster.intersectObject(scene, true)
+    const allIntersects = raycaster.intersectObjects(raycastMeshes, false)
         .filter(hit => hit.object.isMesh && hit.object.visible);
     
         let objectToHide = null;
@@ -342,7 +325,7 @@ function updateCutaway() {
             name.includes('WALLS') || 
             name.includes('WALL_BEAM') || 
             name.includes('CEILING') || 
-            name.includes('FLOOR') || 
+             
             name.includes('DOOR_WINDOW') || 
             name.includes('WINDOW_GLASSES') || 
             name.includes('PORAL')
@@ -394,14 +377,54 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function animate() {
-    controls.update();
-    updateCutaway();
-    renderer.render(scene, camera);
+let renderRequested = false;
+export function requestRenderIfNotRequested() {
+    if (!renderRequested) {
+        renderRequested = true;
+        requestAnimationFrame(render);
+    }
+}
+function render() {
+    renderRequested = false;
+    if (controls) controls.update();
+    if (camera && controls) updateCutaway();
+    if (renderer && scene && camera) renderer.render(scene, camera);
 }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+export function registerStructuralMeshes(scene) {
+    raycastMeshes = [];
+    const list = [];
+    scene.traverse((child) => {
+        if (child.isMesh) {
+            raycastMeshes.push(child);
+            const name = child.name.toUpperCase();
+            if ((name.includes('WALLS') || 
+                 name.includes('WALL_BEAM') || 
+                 name.includes('CEILING') || 
+                 name.includes('DOOR_WINDOW') || 
+                 name.includes('WINDOW_GLASSES') ||
+                 name.includes('PORAL')) && 
+                !name.includes('CAB_BODY') && 
+                !name.includes('BACK_PANEL')) {
+                list.push(child);
+            }
+        }
+    });
+    return list;
+}
 
 
 

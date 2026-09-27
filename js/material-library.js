@@ -82,14 +82,13 @@ export function getMaterialForMeshName(meshName) {
     if (!meshName) return materials.default;
     const name = safeUpper(meshName);
 
-    // Exclusions: NEVER color as door body
     if (name.includes('GLASS')) return materials.glass;
     if (name.includes('HANDLE') || name.includes('KNOB')) return materials.handle;
     if (name.includes('PLINTH')) return materials.plinth;
     if (name.includes('WORKTOP')) return materials.worktop;
     if (name.includes('SINK') || name.includes('ARMATURE') || name.includes('SANITARY')) return materials.sinkArmature;
     
-    if (name.includes('APP_BODY') || name.includes('APPLIANCE') || name.includes('HOOD') || name.includes('FRIDGE') || name.includes('REFRIGERATOR') || name.includes('OVEN') || name.includes('HOB') || name.includes('ACCESSORIES') || name.includes('ENTS_FOR_HIDE')) {
+    if (name.includes('APP') || name.includes('APPLIANCE') || name.includes('HOOD') || name.includes('FRIDGE') || name.includes('REFRIG') || name.includes('BUZDOLABI') || name.includes('OVEN') || name.includes('FIRIN') || name.includes('HOB') || name.includes('OCAK') || name.includes('ACCESSORIES') || name.includes('ENTS_FOR_HIDE') || name.includes('BULSK') || name.includes('WASHER')) {
         if (name.includes('SCREEN')) return materials.applianceGlass;
         return materials.appliance;
     }
@@ -98,7 +97,6 @@ export function getMaterialForMeshName(meshName) {
     if (name.includes('CEILING') || name.includes('WALLS') || name.includes('WALL_BEAM')) return materials.wallCeiling;
     if (name.includes('DOOR_WINDOW') || name.includes('PORAL')) return materials.doorWindowFrame;
 
-    // Doors vs Shared Body
     const isExplicitDoor = name.includes('CAB_DOOR_FORCE') || name.includes('CAB_DOOR');
     const isSharedBody = name.includes('CAB_BODY') || name.includes('CORNICE') || name.includes('PANELS_SIDE');
     
@@ -185,3 +183,4 @@ export function addProceduralApplianceDetails(mesh, name, box, size, center, mat
         });
     }
 }
+

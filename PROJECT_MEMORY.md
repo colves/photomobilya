@@ -41,3 +41,4 @@ Create a web-based, interactive 3D kitchen presentation experience for customers
 - PORAL: Structural window/door-related element; candidate only when it belongs to the occluding window/door package.
 - ENTS_FOR_HIDE and APP_BODY_CASE: Appliance-related parts; fixed appliance-metal scope.
 - `49eb261` introduced a door-only toggle plus procedural appliance and back-panel logic, but visual validation exposed unverified behavior. Do not describe those features as complete until the recorded review findings are fixed and tested on all three GLBs.
+
