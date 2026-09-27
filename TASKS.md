@@ -43,9 +43,9 @@
 - [x] Restrict generated CAB_BODY_WALL back panels to modules whose rear face is actually missing
 - [x] Implement procedural lightweight geometries for appliances (Ovens and Hobs)
 - [x] Added UI toggle for 'Yalnizca Kapaklari Degistir'
-- [x] Correct 49eb261 review findings: keep FLOOR out of cutaway; register every approved structural layer consistently; validate real appliance detection; replace self-intersection back-panel test with a reliable missing-rear-face test
-- [x] Profile and eliminate viewer stutter during inspection, material changes, and model swaps without reducing customer-facing visual quality
-- [x] Perform visual acceptance tests on mutfakdeneme1.glb, mutfakgunesler.glb, and mutfak1kat.glb after the correction
+- [ ] Correct `a78b4a6` review findings: connect render-on-demand to OrbitControls and camera-button animation; separate structural and furniture raycast lists; exclude `FLOOR` from both cutaway candidacy and furniture-behind evidence; validate real appliance detection and missing-rear-face behavior
+- [ ] Profile and eliminate viewer stutter during inspection, material changes, and model swaps without reducing customer-facing visual quality
+- [ ] Perform visual acceptance tests on `mutfakdeneme1.glb`, `mutfakgunesler.glb`, and `mutfak1kat.glb` after the correction
 
 ## Pending
 - [ ] Migrate standalone integration to Kapak repository
