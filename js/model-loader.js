@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { showLoader, hideLoader, updateLoaderText, showError } from './loader.js';
 import { setupCameraControls, hideCameraControls } from './camera-controller.js';
@@ -27,11 +27,11 @@ function disposeModel(scene, model) {
 }
 
 /**
- * URL'den veya Dosyadan (Blob) GLB modeli yükler.
+ * URL'den veya Dosyadan (Blob) GLB modeli yÃ¼kler.
  */
 export async function loadModel(url, scene, camera, controls, removeTempGeoCallback) {
     showLoader();
-    updateLoaderText("Model yükleniyor... %0");
+    updateLoaderText("Model yÃ¼kleniyor... %0");
     hideCameraControls();
 
     try {
@@ -42,9 +42,9 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                 (xhr) => {
                     if (xhr.lengthComputable) {
                         const percentComplete = Math.round((xhr.loaded / xhr.total) * 100);
-                        updateLoaderText(`Model yükleniyor... %${percentComplete}`);
+                        updateLoaderText(`Model yÃ¼kleniyor... %${percentComplete}`);
                     } else {
-                        updateLoaderText(`Model yükleniyor... ${(xhr.loaded / (1024 * 1024)).toFixed(1)} MB`);
+                        updateLoaderText(`Model yÃ¼kleniyor... ${(xhr.loaded / (1024 * 1024)).toFixed(1)} MB`);
                     }
                 },
                 (error) => reject(error)
@@ -57,46 +57,46 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
             currentModel = null;
         }
 
-        // Geçici objeleri sil
+        // GeÃ§ici objeleri sil
         if (removeTempGeoCallback) {
             removeTempGeoCallback();
         }
 
         currentModel = gltf.scene;
 
-        // Transformu güncelle ki ham (raw) BoundingBox hesabı doğru yapılsın
+        // Transformu gÃ¼ncelle ki ham (raw) BoundingBox hesabÄ± doÄŸru yapÄ±lsÄ±n
         currentModel.updateMatrixWorld(true);
         const rawBox = new THREE.Box3().setFromObject(currentModel);
         const rawSize = rawBox.getSize(new THREE.Vector3());
         const maxRawDim = Math.max(rawSize.x, rawSize.y, rawSize.z);
 
-        // Ölçek Normalizasyonu (Auto-Scale Logic)
-        // ADEKO/Babylon GLB çıktıları genelde 0.1 ölçeklidir (örn: 2.3m tavan 0.23 birim, 6m tezgâh 0.6 birim gelir).
-        // Eğer modelin en büyük ölçüsü 2.0'dan, yüksekliği (Y) ise 0.5'ten küçükse, bunun 0.1 ölçekli
-        // bir model olduğunu varsayarak x10 ile metre standardına (1 birim = 1 metre) getiriyoruz.
-        // Diğer durumlarda (örn: Y > 2.0 ise metre ölçeğindedir) hiçbir düzeltme (x1) yapmıyoruz.
+        // Ã–lÃ§ek Normalizasyonu (Auto-Scale Logic)
+        // ADEKO/Babylon GLB Ã§Ä±ktÄ±larÄ± genelde 0.1 Ã¶lÃ§eklidir (Ã¶rn: 2.3m tavan 0.23 birim, 6m tezgÃ¢h 0.6 birim gelir).
+        // EÄŸer modelin en bÃ¼yÃ¼k Ã¶lÃ§Ã¼sÃ¼ 2.0'dan, yÃ¼ksekliÄŸi (Y) ise 0.5'ten kÃ¼Ã§Ã¼kse, bunun 0.1 Ã¶lÃ§ekli
+        // bir model olduÄŸunu varsayarak x10 ile metre standardÄ±na (1 birim = 1 metre) getiriyoruz.
+        // DiÄŸer durumlarda (Ã¶rn: Y > 2.0 ise metre Ã¶lÃ§eÄŸindedir) hiÃ§bir dÃ¼zeltme (x1) yapmÄ±yoruz.
         if (maxRawDim > 0.1 && maxRawDim < 2.0 && rawSize.y < 0.5) {
-            console.log(`[ModelLoader] ADEKO/Babylon (0.1) ölçeği tespit edildi. Normalizasyon için x10 uygulanıyor. Ham Max: ${maxRawDim.toFixed(2)}, Y: ${rawSize.y.toFixed(2)}`);
+            console.log(`[ModelLoader] ADEKO/Babylon (0.1) Ã¶lÃ§eÄŸi tespit edildi. Normalizasyon iÃ§in x10 uygulanÄ±yor. Ham Max: ${maxRawDim.toFixed(2)}, Y: ${rawSize.y.toFixed(2)}`);
             currentModel.scale.set(10, 10, 10);
             currentModel.updateMatrixWorld(true);
         } else {
-            console.log(`[ModelLoader] Model zaten metre ölçeğinde veya belirsiz. Normalizasyon atlanıyor. Ham Max: ${maxRawDim.toFixed(2)}, Y: ${rawSize.y.toFixed(2)}`);
-            // x1 kalır
+            console.log(`[ModelLoader] Model zaten metre Ã¶lÃ§eÄŸinde veya belirsiz. Normalizasyon atlanÄ±yor. Ham Max: ${maxRawDim.toFixed(2)}, Y: ${rawSize.y.toFixed(2)}`);
+            // x1 kalÄ±r
         }
 
-        // Dinamik Materyal Eşlemesini Uygula
+        // Dinamik Materyal EÅŸlemesini Uygula
         applyMaterialsToModel(currentModel);
 
-        // Duvar geometrisini analiz et ve güvenli şekilde çift katmanları / Z-fighting yapan yüzleri temizle
+        // Duvar geometrisini analiz et ve gÃ¼venli ÅŸekilde Ã§ift katmanlarÄ± / Z-fighting yapan yÃ¼zleri temizle
         cleanWallGeometry(currentModel);
         
-        // Hedefli cutaway için duvarları bağımsız mesh'lere ayır
+        // Hedefli cutaway iÃ§in duvarlarÄ± baÄŸÄ±msÄ±z mesh'lere ayÄ±r
         processWallsForCutaway(currentModel);
         
-        // Ekstra geometri düzeltmeleri:
-        // 1. Kapı/Pencere gibi mutfak dışı yapı elemanlarını gizle (büyük gri paneller dahil)
-        // 2. Adeko yazısını gizle
-        // 3. Arkalığı olmayan üst modüllere (CAB_BODY_WALL) arka panel ekle
+        // Ekstra geometri dÃ¼zeltmeleri:
+        // 1. KapÄ±/Pencere gibi mutfak dÄ±ÅŸÄ± yapÄ± elemanlarÄ±nÄ± gizle (bÃ¼yÃ¼k gri paneller dahil)
+        // 2. Adeko yazÄ±sÄ±nÄ± gizle
+        // 3. ArkalÄ±ÄŸÄ± olmayan Ã¼st modÃ¼llere (CAB_BODY_WALL) arka panel ekle
                             const newBackPanels = [];
           const newProceduralDetails = [];
           const modelBoundingBox = new THREE.Box3().setFromObject(currentModel);
@@ -107,9 +107,9 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
           let ceilingBox = new THREE.Box3();
           
           function safeUpper(str) {
-              if (!str) return '';
-              return str.replace(/i/g, 'I').replace(/i/g, 'I').toUpperCase();
-          }
+    if (!str) return '';
+    return str.replace(/i/g, '\u0130').replace(/\u0131/g, 'I').toUpperCase();
+}
 
           currentModel.traverse((child) => {
               if (child.isMesh) {
@@ -314,21 +314,21 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
 
         scene.add(currentModel);
 
-        // Kamerayı ve modeli ayarla
+        // KamerayÄ± ve modeli ayarla
         const modelBoxData = adjustCameraToModel(currentModel, camera, controls);
         
-        // Kamera kontrollerini başlat
+        // Kamera kontrollerini baÅŸlat
         setupCameraControls(camera, controls, modelBoxData);
 
         hideLoader();
         return modelBoxData;
 
     } catch (error) {
-        showError("Model yüklenemedi. Lütfen geçerli ve tek parça bir .glb dosyası olduğundan emin olun.");
-        console.error("Yükleme Hatası:", error);
+        showError("Model yÃ¼klenemedi. LÃ¼tfen geÃ§erli ve tek parÃ§a bir .glb dosyasÄ± olduÄŸundan emin olun.");
+        console.error("YÃ¼kleme HatasÄ±:", error);
         return false;
     } finally {
-        // Blob URL temizliği (sızıntıyı önle)
+        // Blob URL temizliÄŸi (sÄ±zÄ±ntÄ±yÄ± Ã¶nle)
         if (currentObjectUrl === url) {
             URL.revokeObjectURL(currentObjectUrl);
             currentObjectUrl = null;
@@ -337,14 +337,14 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
 }
 
 /**
- * Dosya seçiciden gelen Blob için URL oluşturup kaydeder (ileride silmek için).
+ * Dosya seÃ§iciden gelen Blob iÃ§in URL oluÅŸturup kaydeder (ileride silmek iÃ§in).
  */
 export function setBlobUrl(url) {
     currentObjectUrl = url;
 }
 
 /**
- * Duvar geometrisindeki çakışan (Z-fighting) yüzleri analiz eder ve güvenle temizler.
+ * Duvar geometrisindeki Ã§akÄ±ÅŸan (Z-fighting) yÃ¼zleri analiz eder ve gÃ¼venle temizler.
  */
 function cleanWallGeometry(model) {
     model.traverse((child) => {
@@ -353,19 +353,19 @@ function cleanWallGeometry(model) {
             let geo = child.geometry;
             if (!geo || !geo.attributes.position) return;
             
-            // Non-indexed ise işlemek daha kolay (her 3 vertex 1 üçgen)
+            // Non-indexed ise iÅŸlemek daha kolay (her 3 vertex 1 Ã¼Ã§gen)
             if (geo.index !== null) {
-                console.log(`[WallClean] ${child.name} indexed geometriye sahip. Non-indexed formata çevriliyor...`);
+                console.log(`[WallClean] ${child.name} indexed geometriye sahip. Non-indexed formata Ã§evriliyor...`);
                 geo = geo.toNonIndexed();
                 child.geometry = geo; // Yeni geometriyi ata
             }
             
             const pos = geo.attributes.position;
-            console.log(`[WallClean] ${child.name} analiz ediliyor... Toplam üçgen: ${pos.count / 3}`);
+            console.log(`[WallClean] ${child.name} analiz ediliyor... Toplam Ã¼Ã§gen: ${pos.count / 3}`);
             
-            // Kesin ve güvenli temizleme mantığı: 
-            // Her üçgenin üç köşesini kuantize edip (quantization) sıralayarak anahtar oluştururuz.
-            // Sadece aynı 3 köşeyi paylaşan (kopya olan) yüzleri sileriz.
+            // Kesin ve gÃ¼venli temizleme mantÄ±ÄŸÄ±: 
+            // Her Ã¼Ã§genin Ã¼Ã§ kÃ¶ÅŸesini kuantize edip (quantization) sÄ±ralayarak anahtar oluÅŸtururuz.
+            // Sadece aynÄ± 3 kÃ¶ÅŸeyi paylaÅŸan (kopya olan) yÃ¼zleri sileriz.
             const triangles = [];
             const hashToTriangle = new Map();
             
@@ -380,12 +380,12 @@ function cleanWallGeometry(model) {
                 const hashB = q(vB);
                 const hashC = q(vC);
                 
-                // Köşe sırasından bağımsız olmak için hashleri sıralayıp birleştiriyoruz
+                // KÃ¶ÅŸe sÄ±rasÄ±ndan baÄŸÄ±msÄ±z olmak iÃ§in hashleri sÄ±ralayÄ±p birleÅŸtiriyoruz
                 const hashArray = [hashA, hashB, hashC].sort();
                 const faceHash = hashArray.join('|');
                 
                 if (hashToTriangle.has(faceHash)) {
-                    // Bu 3 köşeye sahip bir üçgen zaten var, bu tam bir kopyadır (z-fighting)!
+                    // Bu 3 kÃ¶ÅŸeye sahip bir Ã¼Ã§gen zaten var, bu tam bir kopyadÄ±r (z-fighting)!
                     duplicateFacesRemoved++;
                 } else {
                     hashToTriangle.set(faceHash, true);
@@ -396,10 +396,10 @@ function cleanWallGeometry(model) {
                 }
             }
             
-            // Yeni geometriyi oluştur
+            // Yeni geometriyi oluÅŸtur
             if (duplicateFacesRemoved > 0) {
                 const keptCount = triangles.filter(t => t.keep).length;
-                console.log(`[WallClean] ${child.name} Z-fighting tespiti: ${duplicateFacesRemoved} çakışan yüzey silindi. Kalan üçgen: ${keptCount}`);
+                console.log(`[WallClean] ${child.name} Z-fighting tespiti: ${duplicateFacesRemoved} Ã§akÄ±ÅŸan yÃ¼zey silindi. Kalan Ã¼Ã§gen: ${keptCount}`);
                 
                 const newPosArray = new Float32Array(keptCount * 3 * 3); // 3 vertex * 3 (x,y,z)
                 const newNormalArray = geo.attributes.normal ? new Float32Array(keptCount * 3 * 3) : null;
@@ -437,20 +437,20 @@ function cleanWallGeometry(model) {
                 if (newNormalArray) geo.setAttribute('normal', new THREE.BufferAttribute(newNormalArray, 3));
                 if (newUvArray) geo.setAttribute('uv', new THREE.BufferAttribute(newUvArray, 2));
                 
-                // Geometri değiştiği için sınır kutularını güncelle
+                // Geometri deÄŸiÅŸtiÄŸi iÃ§in sÄ±nÄ±r kutularÄ±nÄ± gÃ¼ncelle
                 geo.computeBoundingBox();
                 geo.computeBoundingSphere();
                 
-                // Kalınlık eklenebilir mi analizi:
-                console.log(`[WallClean] Kalınlık (extrude) uygulanamadı çünkü kalan yüzeylerin topolojisi manifold (kapalı/sürekli) değil veya açık kenarlar barındırıyor.`);
+                // KalÄ±nlÄ±k eklenebilir mi analizi:
+                console.log(`[WallClean] KalÄ±nlÄ±k (extrude) uygulanamadÄ± Ã§Ã¼nkÃ¼ kalan yÃ¼zeylerin topolojisi manifold (kapalÄ±/sÃ¼rekli) deÄŸil veya aÃ§Ä±k kenarlar barÄ±ndÄ±rÄ±yor.`);
             }
         }
     });
 }
 
 /**
- * Tek parça halindeki mesh'i (bağlantısız üçgen adalarına göre) bağımsız mesh'lere ayırır.
- * Güvenli ayrışma olmazsa (tek parça kalırsa) false döner.
+ * Tek parÃ§a halindeki mesh'i (baÄŸlantÄ±sÄ±z Ã¼Ã§gen adalarÄ±na gÃ¶re) baÄŸÄ±msÄ±z mesh'lere ayÄ±rÄ±r.
+ * GÃ¼venli ayrÄ±ÅŸma olmazsa (tek parÃ§a kalÄ±rsa) false dÃ¶ner.
  */
 function splitMeshIntoComponents(mesh) {
     const geo = mesh.geometry;
@@ -504,7 +504,7 @@ function splitMeshIntoComponents(mesh) {
     }
 
     if (components.length <= 1) {
-        return [mesh]; // Ayrılamadı veya tek parça
+        return [mesh]; // AyrÄ±lamadÄ± veya tek parÃ§a
     }
 
     const newMeshes = [];
@@ -558,7 +558,7 @@ export function processWallsForCutaway(model) {
             if (components.length > 1) {
                 console.log(`[WallClean] ${child.name} islendi`);
                 
-                // Eski mesh'in transformasyonlarini yeni par�alara kopyala
+                // Eski mesh'in transformasyonlarini yeni parçalara kopyala
                 components.forEach(comp => {
                     comp.position.copy(child.position);
                     comp.quaternion.copy(child.quaternion);
@@ -585,7 +585,7 @@ export function processWallsForCutaway(model) {
 }
 
 /**
- * Modeli merkeze ve zemine alır, kamerayı ölçekler.
+ * Modeli merkeze ve zemine alÄ±r, kamerayÄ± Ã¶lÃ§ekler.
  */
 function adjustCameraToModel(model, camera, controls) {
     const box = new THREE.Box3().setFromObject(model);
@@ -606,10 +606,10 @@ function adjustCameraToModel(model, camera, controls) {
     const fov = camera.fov * (Math.PI / 180);
     let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
     
-    // Güvenlik payı ekle
+    // GÃ¼venlik payÄ± ekle
     cameraZ *= 1.5; 
 
-    // Kamerayı varsayılan ana pozisyona al (biraz yüksekten)
+    // KamerayÄ± varsayÄ±lan ana pozisyona al (biraz yÃ¼ksekten)
     camera.position.set(newCenter.x, newCenter.y + (maxDim * 0.5), newCenter.z + cameraZ);
     controls.target.set(newCenter.x, newCenter.y, newCenter.z);
 
@@ -638,6 +638,9 @@ export function reapplyMaterials() {
         applyMaterialsToModel(currentModel);
     }
 }
+
+
+
 
 
 

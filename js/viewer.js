@@ -70,7 +70,7 @@ export async function initViewer(containerId) {
             if (success) {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
-                wallAndCeilingMeshes = registerStructuralMeshes(scene);
+                buildRaycastLists(scene);
                 showConfigPanel(); requestRenderIfNotRequested();
             }
         } else {
@@ -98,7 +98,7 @@ function setupFileInput() {
             if (success) {
                 updateDynamicLighting(success.center, success.maxDim);
                 roomBoundingBox = success.boundingBox;
-                wallAndCeilingMeshes = registerStructuralMeshes(scene);
+                buildRaycastLists(scene);
                 showConfigPanel(); requestRenderIfNotRequested();
             }
             
@@ -404,27 +404,55 @@ function render() {
 
 
 
-export function registerStructuralMeshes(scene) {
+export function buildRaycastLists(scene) {
+    wallAndCeilingMeshes = [];
     raycastMeshes = [];
-    const list = [];
+    
     scene.traverse((child) => {
         if (child.isMesh) {
-            raycastMeshes.push(child);
             const name = child.name.toUpperCase();
-            if ((name.includes('WALLS') || 
-                 name.includes('WALL_BEAM') || 
-                 name.includes('CEILING') || 
-                 name.includes('DOOR_WINDOW') || 
-                 name.includes('WINDOW_GLASSES') ||
-                 name.includes('PORAL')) && 
-                !name.includes('CAB_BODY') && 
-                !name.includes('BACK_PANEL')) {
-                list.push(child);
+            
+            // Yapisal adaylar (Gizlenebilecek olanlar)
+            const isStructure = (
+                name.includes('WALLS') || 
+                name.includes('WALL_BEAM') || 
+                name.includes('CEILING') || 
+                name.includes('DOOR_WINDOW') || 
+                name.includes('WINDOW_GLASSES') ||
+                name.includes('PORAL')
+            ) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL');
+
+            // Mobilya engelleyicileri (Arkasinda kalinca gizlenmeyi tetikleyenler)
+            const isStrictFurniture = (
+                name.includes('CAB_') || 
+                name.includes('PANEL') || 
+                name.includes('SHELV') || 
+                name.includes('HANDLE') || 
+                name.includes('KNOB') || 
+                name.includes('APP') || 
+                name.includes('BULSK') || 
+                name.includes('REFRIG') || 
+                name.includes('FRIDGE') ||
+                name.includes('OVEN') || 
+                name.includes('SINK') || 
+                name.includes('ARMATURE') || 
+                name.includes('SANITARY') || 
+                name.includes('WORKTOP') ||
+                name.includes('PLINTH') ||
+                name.includes('CORNICE')
+            ) && !name.includes('FLOOR');
+
+            if (isStructure) {
+                wallAndCeilingMeshes.push(child);
+                raycastMeshes.push(child);
+            } else if (isStrictFurniture) {
+                raycastMeshes.push(child);
             }
         }
     });
-    return list;
 }
+
+
 
 
 

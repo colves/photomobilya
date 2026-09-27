@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { requestRenderIfNotRequested } from './viewer.js';
 
 let isAnimating = false;
 
@@ -26,6 +27,7 @@ function animateCamera(camera, controls, targetPosition, targetLookAt, duration 
         camera.position.lerpVectors(startPos, targetPosition, ease);
         controls.target.lerpVectors(startLookAt, targetLookAt, ease);
         controls.update();
+        requestRenderIfNotRequested();
 
         if (progress < 1) {
             requestAnimationFrame(animationStep);
@@ -90,3 +92,4 @@ export function hideCameraControls() {
         controlsPanel.classList.add('hidden');
     }
 }
+

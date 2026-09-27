@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { lakeNoiseDokusuOlustur } from './textures.js';
 
 export let onlyDoorsMode = false;
@@ -8,7 +8,7 @@ export function setOnlyDoorsMode(val) {
 
 function safeUpper(str) {
     if (!str) return '';
-    return str.replace(/i/g, 'I').replace(/i/g, 'I').toUpperCase();
+    return str.replace(/i/g, '\u0130').replace(/\u0131/g, 'I').toUpperCase();
 }
 
 const materials = {
@@ -183,4 +183,7 @@ export function addProceduralApplianceDetails(mesh, name, box, size, center, mat
         });
     }
 }
+
+
+
 
