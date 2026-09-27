@@ -41,6 +41,7 @@
 - [x] Audit manually classified ADEKO layer names against current viewer behavior
 
 ## Pending
+- [ ] Profile and eliminate viewer stutter during inspection, material changes, and model swaps without reducing customer-facing visual quality
 - [ ] Apply the user-confirmed material scopes, structural cutaway list, and optimized appliance-geometry rules from `PROJECT_MEMORY.md`
 - [ ] Restrict generated `CAB_BODY_WALL` back panels to modules whose rear face is actually missing
 - [ ] Migrate standalone integration to Kapak repository
