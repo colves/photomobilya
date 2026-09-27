@@ -50,3 +50,4 @@
 ## Pending
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
+
