@@ -50,8 +50,10 @@
 - [x] Perform visual acceptance tests on mutfakdeneme1.glb, mutfakgunesler.glb, and mutfak1kat.glb after the correction
 
 ## Pending
+- [x] Fix critical bug where js/textures.js was missing in repository causing 404 block on loading screen
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
+
 
 
 
