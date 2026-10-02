@@ -89,6 +89,10 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
 
         // Duvar geometrisini analiz et ve gÃ¼venli ÅŸekilde Ã§ift katmanlarÄ± / Z-fighting yapan yÃ¼zleri temizle
         cleanWallGeometry(currentModel);
+
+        // The verified ADEKO ceiling layers are rectangular but can contain
+        // duplicate top/bottom faces. Keep one source-sized interior plane.
+        simplifyCeilingGeometry(currentModel);
         
         // Hedefli cutaway iÃ§in duvarlarÄ± baÄŸÄ±msÄ±z mesh'lere ayÄ±r
         processWallsForCutaway(currentModel);
@@ -437,14 +441,44 @@ function cleanWallGeometry(model) {
     });
 }
 
+function simplifyCeilingGeometry(model) {
+    model.traverse((child) => {
+        if (!child.isMesh || !safeUpper(child.name).includes('CEILING')) return;
+
+        const source = child.geometry;
+        if (!source || !source.attributes.position) return;
+
+        source.computeBoundingBox();
+        const box = source.boundingBox;
+        if (!box || box.isEmpty()) return;
+
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const ceiling = new THREE.PlaneGeometry(size.x, size.z);
+        ceiling.rotateX(-Math.PI / 2);
+        ceiling.translate(center.x, box.min.y, center.z);
+
+        child.geometry.dispose();
+        child.geometry = ceiling;
+        child.userData.sourceCeilingSimplified = true;
+    });
+}
+
 /**
  * Tek parÃ§a halindeki mesh'i (baÄŸlantÄ±sÄ±z Ã¼Ã§gen adalarÄ±na gÃ¶re) baÄŸÄ±msÄ±z mesh'lere ayÄ±rÄ±r.
  * GÃ¼venli ayrÄ±ÅŸma olmazsa (tek parÃ§a kalÄ±rsa) false dÃ¶ner.
  */
 function splitMeshIntoComponents(mesh) {
     const geo = mesh.geometry;
-    const pos = geo.attributes.position;
-    if (!pos) return [mesh];
+    // Babylon GLBs commonly preserve an index buffer. The former splitter
+    // treated indexed vertices as consecutive triangles, which split or
+    // damaged a single ceiling/wall surface. Work from real triangle data.
+    const sourceGeo = geo.index ? geo.toNonIndexed() : geo;
+    const pos = sourceGeo.attributes.position;
+    if (!pos) {
+        if (sourceGeo !== geo) sourceGeo.dispose();
+        return [mesh];
+    }
 
     const vertexToTriangles = new Map();
     const q = (x, y, z) => `${Math.round(x*100)},${Math.round(y*100)},${Math.round(z*100)}`;
@@ -493,6 +527,7 @@ function splitMeshIntoComponents(mesh) {
     }
 
     if (components.length <= 1) {
+        if (sourceGeo !== geo) sourceGeo.dispose();
         return [mesh]; // AyrÄ±lamadÄ± veya tek parÃ§a
     }
 
@@ -500,8 +535,8 @@ function splitMeshIntoComponents(mesh) {
     components.forEach((comp, idx) => {
         const newGeo = new THREE.BufferGeometry();
         const newPos = new Float32Array(comp.length * 9);
-        const newNorm = geo.attributes.normal ? new Float32Array(comp.length * 9) : null;
-        const newUv = geo.attributes.uv ? new Float32Array(comp.length * 6) : null;
+        const newNorm = sourceGeo.attributes.normal ? new Float32Array(comp.length * 9) : null;
+        const newUv = sourceGeo.attributes.uv ? new Float32Array(comp.length * 6) : null;
         
         let pOffset = 0, uOffset = 0;
         comp.forEach(origIdx => {
@@ -511,13 +546,13 @@ function splitMeshIntoComponents(mesh) {
                 newPos[pOffset+1] = pos.getY(vIdx);
                 newPos[pOffset+2] = pos.getZ(vIdx);
                 if (newNorm) {
-                    newNorm[pOffset] = geo.attributes.normal.getX(vIdx);
-                    newNorm[pOffset+1] = geo.attributes.normal.getY(vIdx);
-                    newNorm[pOffset+2] = geo.attributes.normal.getZ(vIdx);
+                    newNorm[pOffset] = sourceGeo.attributes.normal.getX(vIdx);
+                    newNorm[pOffset+1] = sourceGeo.attributes.normal.getY(vIdx);
+                    newNorm[pOffset+2] = sourceGeo.attributes.normal.getZ(vIdx);
                 }
                 if (newUv) {
-                    newUv[uOffset] = geo.attributes.uv.getX(vIdx);
-                    newUv[uOffset+1] = geo.attributes.uv.getY(vIdx);
+                    newUv[uOffset] = sourceGeo.attributes.uv.getX(vIdx);
+                    newUv[uOffset+1] = sourceGeo.attributes.uv.getY(vIdx);
                     uOffset += 2;
                 }
                 pOffset += 3;
@@ -535,6 +570,8 @@ function splitMeshIntoComponents(mesh) {
         newMesh.userData = mesh.userData || {};
         newMeshes.push(newMesh);
     });
+
+    if (sourceGeo !== geo) sourceGeo.dispose();
     
     return newMeshes;
 }

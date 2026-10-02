@@ -302,11 +302,21 @@ function isOpeningName(name) {
         name.includes('PORAL');
 }
 
+function isWallName(name) {
+    return name.includes('WALLS') || name.includes('WALL_BEAM');
+}
+
 function isStructureName(name) {
-    return name.includes('WALLS') ||
-        name.includes('WALL_BEAM') ||
+    return isWallName(name) ||
         name.includes('CEILING') ||
         isOpeningName(name);
+}
+
+function boxDistance(a, b) {
+    const dx = Math.max(a.min.x - b.max.x, b.min.x - a.max.x, 0);
+    const dy = Math.max(a.min.y - b.max.y, b.min.y - a.max.y, 0);
+    const dz = Math.max(a.min.z - b.max.z, b.min.z - a.max.z, 0);
+    return Math.hypot(dx, dy, dz);
 }
 
 function getConnectedOpeningMeshes(anchor) {
@@ -325,6 +335,28 @@ function getConnectedOpeningMeshes(anchor) {
             return connected;
         }
         container = container.parent;
+    }
+
+    // Walls and their openings are separate sibling layers in ADEKO exports.
+    // Bind each opening to its nearest wall instead of relying on mesh-name
+    // order or a loose global intersection.
+    if (isWallName(getNameChain(anchor))) {
+        const walls = wallAndCeilingMeshes.filter(mesh => isWallName(getNameChain(mesh)));
+        wallAndCeilingMeshes.forEach((opening) => {
+            if (!isOpeningName(getNameChain(opening))) return;
+            const openingBox = new THREE.Box3().setFromObject(opening);
+            let nearestWall = null;
+            let nearestDistance = Infinity;
+            walls.forEach((wall) => {
+                const distance = boxDistance(openingBox, new THREE.Box3().setFromObject(wall));
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestWall = wall;
+                }
+            });
+            if (nearestWall === anchor) connected.add(opening);
+        });
+        if (connected.size > 0) return connected;
     }
 
     // Layer-only exports have no useful common parent. In that case, retain

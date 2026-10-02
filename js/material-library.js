@@ -142,7 +142,11 @@ export function applyMaterialsToModel(model) {
             if (child.material !== materials.glass && child.material !== materials.applianceGlass) {
                 child.material.side = THREE.FrontSide;
             }
-            child.castShadow = true;
+            // Room shells block the directional key light in an enclosed
+            // kitchen. They remain visible but must not turn the interior
+            // black while the customer is inspecting it.
+            const structureName = safeUpper(child.name);
+            child.castShadow = !structureName.includes('CEILING') && !structureName.includes('WALLS') && !structureName.includes('WALL_BEAM');
             child.receiveShadow = true;
         }
     });

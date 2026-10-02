@@ -59,6 +59,8 @@
 - [x] Remove the duplicate automatic ceiling filler and allow a single CEILING mesh to be cut away
 - [x] Apply the selected front finish to visible PLINTHS while preserving fixed PLINTH_LEGS
 - [x] Add a lightweight stainless-steel bowl floor for SINKS exports missing an interior surface
+- [x] Correct indexed GLB geometry handling so ceiling/wall component processing cannot split faces incorrectly
+- [x] Normalize verified CEILING layers to one source-sized plane and prevent room shells from darkening the interior
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 

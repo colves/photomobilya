@@ -94,9 +94,9 @@ Status: Active
 ## D-008 — Do not generate a generic ceiling filler
 
 Decision:
-Use only the CEILING geometry supplied by the source model; do not add an automatic whole-room ceiling plane.
+Use only the dimensions of the CEILING geometry supplied by the source model, normalised to one interior plane; do not add an automatic whole-room ceiling plane.
 
 Reason:
-The source test models already contain a CEILING mesh. The generic plane duplicated it and created a visibly split ceiling. Any genuinely missing ceiling detail requires source-specific geometry evidence.
+The source test models already contain CEILING mesh data, sometimes with duplicated top/bottom faces. The generic plane duplicated it and created a visibly split ceiling. A single plane based on the verified source bounds preserves the intended ceiling footprint without a second slab.
 
 Status: Active
