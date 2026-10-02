@@ -84,7 +84,12 @@ export function getMaterialForMeshName(meshName) {
 
     if (name.includes('GLASS')) return materials.glass;
     if (name.includes('HANDLE') || name.includes('KNOB')) return materials.handle;
-    if (name.includes('PLINTH')) return materials.plinth;
+    if (name.includes('PLINTH')) {
+        // Only the visible toe-kick follows the selected front finish. The
+        // legs remain construction hardware in both color modes.
+        if (name.includes('PLINTH_LEGS')) return materials.plinth;
+        return onlyDoorsMode ? materials.plinth : materials.cabinetDoor;
+    }
     if (name.includes('WORKTOP')) return materials.worktop;
     if (name.includes('SINK') || name.includes('ARMATURE') || name.includes('SANITARY')) return materials.sinkArmature;
     

@@ -55,6 +55,10 @@
 - [x] Prevent HDRI loading failure/delay from permanently blocking the viewer startup by making it strictly asynchronous (safely applied without breaking viewer.js)
 - [x] Restore heavily damaged viewer.js functions (updateDynamicLighting, updateCutaway) lost during PowerShell regex replacements
 - [x] Fix GLB load failure caused by the missing safeUpper import and repair affected user-facing Turkish loading/error strings
+- [x] Make wall/ceiling cutaway use CAD hierarchy and hide the associated door/window/glass package
+- [x] Remove the duplicate automatic ceiling filler and allow a single CEILING mesh to be cut away
+- [x] Apply the selected front finish to visible PLINTHS while preserving fixed PLINTH_LEGS
+- [x] Add a lightweight stainless-steel bowl floor for SINKS exports missing an interior surface
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 

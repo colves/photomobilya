@@ -88,3 +88,15 @@ Reason:
 Similar-looking names can represent cabinet construction, appliance details, or room structure, and broad matching has previously recolored or hidden the wrong geometry.
 
 Status: Active
+
+---
+
+## D-008 — Do not generate a generic ceiling filler
+
+Decision:
+Use only the CEILING geometry supplied by the source model; do not add an automatic whole-room ceiling plane.
+
+Reason:
+The source test models already contain a CEILING mesh. The generic plane duplicated it and created a visibly split ceiling. Any genuinely missing ceiling detail requires source-specific geometry evidence.
+
+Status: Active

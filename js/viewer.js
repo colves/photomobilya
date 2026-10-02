@@ -283,6 +283,61 @@ let lastCameraPos = new THREE.Vector3();
 let lastTargetPos = new THREE.Vector3();
 let lastHiddenMeshes = new Set();
 
+function getNameChain(object) {
+    const names = [];
+    let current = object;
+
+    while (current && current !== scene) {
+        if (current.name) names.push(safeUpper(current.name));
+        current = current.parent;
+    }
+
+    return names.join(' ');
+}
+
+function isOpeningName(name) {
+    return name.includes('DOOR_WINDOW') ||
+        name.includes('DOOR_WINDOWS') ||
+        name.includes('WINDOW_GLASSES') ||
+        name.includes('PORAL');
+}
+
+function isStructureName(name) {
+    return name.includes('WALLS') ||
+        name.includes('WALL_BEAM') ||
+        name.includes('CEILING') ||
+        isOpeningName(name);
+}
+
+function getConnectedOpeningMeshes(anchor) {
+    const connected = new Set();
+    let container = anchor.parent;
+
+    // Prefer the nearby CAD block hierarchy, so different windows are never
+    // hidden merely because they share a layer name.
+    while (container && container.parent && container.parent !== scene) {
+        const inContainer = [];
+        container.traverse((child) => {
+            if (child.isMesh && isOpeningName(getNameChain(child))) inContainer.push(child);
+        });
+        if (inContainer.length > 0) {
+            inContainer.forEach(mesh => connected.add(mesh));
+            return connected;
+        }
+        container = container.parent;
+    }
+
+    // Layer-only exports have no useful common parent. In that case, retain
+    // the existing local bounding-box rule instead of hiding all openings.
+    const localBox = new THREE.Box3().setFromObject(anchor).expandByScalar(0.2);
+    wallAndCeilingMeshes.forEach((mesh) => {
+        if (!isOpeningName(getNameChain(mesh))) return;
+        if (localBox.intersectsBox(new THREE.Box3().setFromObject(mesh))) connected.add(mesh);
+    });
+
+    return connected;
+}
+
 function updateCutaway() {
     if (wallAndCeilingMeshes.length === 0) return;
 
@@ -313,7 +368,7 @@ function updateCutaway() {
 
     for (let i = 0; i < allIntersects.length; i++) {
         const hitObj = allIntersects[i].object;
-        const name = safeUpper(hitObj.name);
+        const name = getNameChain(hitObj);
         
         const isStrictFurniture = (
             name.includes('CAB_') || 
@@ -339,15 +394,7 @@ function updateCutaway() {
             break;
         }
         
-        const isStructure = (
-            name.includes('WALLS') || 
-            name.includes('WALL_BEAM') || 
-            name.includes('CEILING') || 
-             
-            name.includes('DOOR_WINDOW') || 
-            name.includes('WINDOW_GLASSES') || 
-            name.includes('PORAL')
-        );
+        const isStructure = isStructureName(name);
 
         if (isStructure) {
             if (!objectToHide && !hitObj.userData.unsafeForCutaway) {
@@ -360,27 +407,15 @@ function updateCutaway() {
     }
 
     if (objectToHide && hasFurnitureBehind) {
-        const hideName = safeUpper(objectToHide.name);
-        const hideList = [];
+        const hideName = getNameChain(objectToHide);
+        const hideList = new Set([objectToHide]);
         
         if (hideName.includes('CEILING')) {
             wallAndCeilingMeshes.forEach(m => {
-                if (safeUpper(m.name).includes('CEILING')) hideList.push(m);
+                if (getNameChain(m).includes('CEILING')) hideList.add(m);
             });
-        } else if (hideName.includes('DOOR_WINDOW') || hideName.includes('WINDOW_GLASSES') || hideName.includes('PORAL')) {
-            const hideBox = new THREE.Box3().setFromObject(objectToHide);
-            hideBox.expandByScalar(0.2); 
-            wallAndCeilingMeshes.forEach(m => {
-                const n = safeUpper(m.name);
-                if (n.includes('DOOR_WINDOW') || n.includes('WINDOW_GLASSES') || n.includes('PORAL')) {
-                    const mBox = new THREE.Box3().setFromObject(m);
-                    if (hideBox.intersectsBox(mBox)) {
-                        hideList.push(m);
-                    }
-                }
-            });
-        } else {
-            hideList.push(objectToHide);
+        } else if (hideName.includes('WALLS') || hideName.includes('WALL_BEAM') || isOpeningName(hideName)) {
+            getConnectedOpeningMeshes(objectToHide).forEach(mesh => hideList.add(mesh));
         }
 
         hideList.forEach(m => {
@@ -428,17 +463,10 @@ export function buildRaycastLists(scene) {
     
     scene.traverse((child) => {
         if (child.isMesh) {
-            const name = safeUpper(child.name);
+            const name = getNameChain(child);
             
             // Yapisal adaylar (Gizlenebilecek olanlar)
-            const isStructure = (
-                name.includes('WALLS') || 
-                name.includes('WALL_BEAM') || 
-                name.includes('CEILING') || 
-                name.includes('DOOR_WINDOW') || 
-                name.includes('WINDOW_GLASSES') ||
-                name.includes('PORAL')
-            ) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL');
+            const isStructure = isStructureName(name) && !name.includes('CAB_BODY') && !name.includes('BACK_PANEL');
 
             // Mobilya engelleyicileri (Arkasinda kalinca gizlenmeyi tetikleyenler)
             const isStrictFurniture = (

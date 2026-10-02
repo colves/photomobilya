@@ -99,12 +99,10 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         // 3. ArkalÄ±ÄŸÄ± olmayan Ã¼st modÃ¼llere (CAB_BODY_WALL) arka panel ekle
                             const newBackPanels = [];
           const newProceduralDetails = [];
+          const newSinkDetails = [];
           const modelBoundingBox = new THREE.Box3().setFromObject(currentModel);
           const roomCenter = modelBoundingBox.getCenter(new THREE.Vector3());
           const roomSize = modelBoundingBox.getSize(new THREE.Vector3());
-          let maxCeilingY = -Infinity;
-          let ceilingMaterial = null;
-          let ceilingBox = new THREE.Box3();
           
           
 
@@ -118,15 +116,6 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                       if (size.y < 0.02 && size.z < 0.01) {
                           child.visible = false;
                           child.userData.isForceHidden = true;
-                      }
-                  }
-                  
-                  if (name.includes('CEILING')) {
-                      const box = new THREE.Box3().setFromObject(child);
-                      ceilingBox.union(box);
-                      if (box.max.y > maxCeilingY) {
-                          maxCeilingY = box.max.y;
-                          ceilingMaterial = child.material;
                       }
                   }
                   
@@ -282,32 +271,35 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                           }
                       }
                   }
+
+                  // Some ADEKO SINKS layers export the rim and sides but not
+                  // the bowl floor. Add only that missing interior surface so
+                  // the cabinet behind it can never look like the sink fill.
+                  if (name.includes('SINKS') && !child.userData.hasSinkBowl) {
+                      child.userData.hasSinkBowl = true;
+                      const box = new THREE.Box3().setFromObject(child);
+                      const size = box.getSize(new THREE.Vector3());
+                      const innerWidth = Math.max(0.05, size.x * 0.82);
+                      const innerDepth = Math.max(0.05, size.z * 0.82);
+                      const bowlFloor = new THREE.Mesh(
+                          new THREE.BoxGeometry(innerWidth, 0.012, innerDepth),
+                          new THREE.MeshStandardMaterial({ color: 0xaeb7ba, roughness: 0.22, metalness: 0.95, side: THREE.DoubleSide })
+                      );
+                      bowlFloor.material.userData.isProcedural = true;
+                      bowlFloor.position.set((box.min.x + box.max.x) / 2, box.min.y + 0.014, (box.min.z + box.max.z) / 2);
+                      currentModel.worldToLocal(bowlFloor.position);
+                      const parentWorldScale = new THREE.Vector3();
+                      currentModel.getWorldScale(parentWorldScale);
+                      bowlFloor.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
+                      bowlFloor.name = 'PROC_SINK_BOWL';
+                      newSinkDetails.push(bowlFloor);
+                  }
               }
           });
           
-          newProceduralDetails.forEach(p => currentModel.add(p));          newBackPanels.forEach(p => currentModel.add(p));
-          
-          if (ceilingMaterial && maxCeilingY !== -Infinity && !ceilingBox.isEmpty()) {
-              const cSize = ceilingBox.getSize(new THREE.Vector3());
-              const cCenter = ceilingBox.getCenter(new THREE.Vector3());
-              
-              const ceilingFillerGeo = new THREE.PlaneGeometry(cSize.x + 0.05, cSize.z + 0.05);
-              const ceilingFillerMesh = new THREE.Mesh(ceilingFillerGeo, ceilingMaterial);
-              
-              ceilingFillerMesh.rotation.x = Math.PI / 2;
-              
-              const parentWorldScale = new THREE.Vector3();
-              currentModel.getWorldScale(parentWorldScale);
-              ceilingFillerMesh.scale.set(1 / parentWorldScale.x, 1 / parentWorldScale.y, 1 / parentWorldScale.z);
-              
-              ceilingFillerMesh.position.set(cCenter.x, maxCeilingY + 0.001, cCenter.z);
-              currentModel.worldToLocal(ceilingFillerMesh.position);
-              
-              ceilingFillerMesh.name = 'CEILING_FILLER';
-              ceilingFillerMesh.userData.isForceHidden = false;
-              ceilingFillerMesh.userData.unsafeForCutaway = true;
-              currentModel.add(ceilingFillerMesh);
-          }
+          newProceduralDetails.forEach(p => currentModel.add(p));
+          newBackPanels.forEach(p => currentModel.add(p));
+          newSinkDetails.forEach(p => currentModel.add(p));
 
         scene.add(currentModel);
 
@@ -551,6 +543,7 @@ export function processWallsForCutaway(model) {
     const replacements = [];
     model.traverse((child) => {
         if (child.isMesh && (child.name.toUpperCase().includes('WALLS') || child.name.toUpperCase().includes('CEILING'))) {
+            const isCeiling = child.name.toUpperCase().includes('CEILING');
             const components = splitMeshIntoComponents(child);
             if (components.length > 1) {
                 console.log(`[WallClean] ${child.name} islendi`);
@@ -563,7 +556,7 @@ export function processWallsForCutaway(model) {
                 });
                 
                 replacements.push({ old: child, newComponents: components });
-            } else {
+            } else if (!isCeiling) {
                 console.log(`[WallClean] ${child.name} islendi`);
                 child.userData = child.userData || {};
                 child.userData.unsafeForCutaway = true;
