@@ -7,7 +7,7 @@ import { updateMaterialVariant, setOnlyDoorsMode, safeUpper } from './material-l
 import { reapplyMaterials } from './model-loader.js';
 
 let scene, camera, renderer, controls, mainLight;
-window.scene = scene; window.camera = camera; window.controls = controls;
+
 let tempGeometries = [];
 
 export async function initViewer(containerId) {
@@ -20,12 +20,11 @@ export async function initViewer(containerId) {
     try {
         // 1. Sahne (Scene)
         scene = new THREE.Scene();
-window.scene = scene;
+
         scene.background = new THREE.Color('#f5f5f5');
 
         // 2. Kamera (Camera)
-        
-window.camera = camera;
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(4, 3, 5);
 
         // 3. Renderer
@@ -44,7 +43,7 @@ window.camera = camera;
 
         // 4. Kontroller (OrbitControls)
         controls = new OrbitControls(camera, renderer.domElement);
-window.controls = controls;
+
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 1;
@@ -124,7 +123,7 @@ function setupConfigPanel() {
             const type = target.dataset.type;
             const val = target.dataset.val;
             
-            // Eger kapak ('door') seçildiyse, tüm kapak butonlarindaki active sinifini kaldir
+            // Eger kapak ('door') seï¿½ildiyse, tï¿½m kapak butonlarindaki active sinifini kaldir
             if (type === 'door') {
                 const allDoorBtns = document.querySelectorAll('.renk-btn[data-type="door"]');
                 allDoorBtns.forEach(b => b.classList.remove('active'));
