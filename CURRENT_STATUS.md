@@ -1,12 +1,13 @@
 ﻿# CURRENT STATUS
 
 ## System State
-PhotoMobilya standalone viewer is fully functional and stable.
+PhotoMobilya standalone viewer starts and loads the three local test GLBs.
 - The user-confirmed structural cutaway candidates are WALLS, CEILING, DOOR_WINDOW, WINDOW_GLASSES, WALL_BEAM, and PORAL; FLOOR must remain visible.
-- Regression from e79a227 was completely reverted by restoring iewer.js from a safe commit (8c5a5e6). updateDynamicLighting, updateCutaway, and createTemporaryGeometry are fully restored.
-- UTF-8 characters are mathematically proven intact in the source code; previous terminal outputs were artifacts of PowerShell encoding.
-- Re-applied HDRI non-blocking initialization safely via AST/Substring string matching. Timeout is set to 5 seconds. If HDRI hangs or fails, application boots perfectly with Directional and Fill lights without trapping the user in the loading screen.
-- Lake procedural texture is confirmed to generate a deterministic THREE.DataTexture exactly once and caches it to memory, completely resolving the GPU garbage collection overhead.
+- The e79a227 viewer.js regression was restored in c4ab721; updateDynamicLighting, updateCutaway, and temporary-scene helpers are present again.
+- HDRI loading is non-blocking with a five-second fallback; the viewer can start with the built-in lights while HDRI loading continues or fails.
+- Lake noise uses one cached deterministic THREE.DataTexture.
+- 2026-10-03: GLB loading failed because model-loader.js called safeUpper without importing it. The named import and user-facing Turkish loading/error strings were repaired. Local browser checks loaded mutfakdeneme1.glb, mutfakgunesler.glb, and mutfak1kat.glb through the same loadModel path without the error screen.
 
 ## Next Phase
 - Standalone integration into the live Kapak repository only after explicit approval.
+- Perform user acceptance checks for file-picker upload, material changes, and cutaway behavior on the live deployment.

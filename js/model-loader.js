@@ -2,7 +2,7 @@
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { showLoader, hideLoader, updateLoaderText, showError } from './loader.js';
 import { setupCameraControls, hideCameraControls } from './camera-controller.js';
-import { applyMaterialsToModel } from './material-library.js';
+import { applyMaterialsToModel, safeUpper } from './material-library.js';
 
 let currentModel = null;
 let currentObjectUrl = null;
@@ -27,11 +27,11 @@ function disposeModel(scene, model) {
 }
 
 /**
- * URL'den veya Dosyadan (Blob) GLB modeli yÃ¼kler.
+ * URL'den veya dosyadan (Blob) GLB modeli yükler.
  */
 export async function loadModel(url, scene, camera, controls, removeTempGeoCallback) {
     showLoader();
-    updateLoaderText("Model yÃ¼kleniyor... %0");
+    updateLoaderText("Model yükleniyor... %0");
     hideCameraControls();
 
     try {
@@ -42,9 +42,9 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
                 (xhr) => {
                     if (xhr.lengthComputable) {
                         const percentComplete = Math.round((xhr.loaded / xhr.total) * 100);
-                        updateLoaderText(`Model yÃ¼kleniyor... %${percentComplete}`);
+                        updateLoaderText(`Model yükleniyor... %${percentComplete}`);
                     } else {
-                        updateLoaderText(`Model yÃ¼kleniyor... ${(xhr.loaded / (1024 * 1024)).toFixed(1)} MB`);
+                        updateLoaderText(`Model yükleniyor... ${(xhr.loaded / (1024 * 1024)).toFixed(1)} MB`);
                     }
                 },
                 (error) => reject(error)
@@ -321,8 +321,8 @@ export async function loadModel(url, scene, camera, controls, removeTempGeoCallb
         return modelBoxData;
 
     } catch (error) {
-        showError("Model yÃ¼klenemedi. LÃ¼tfen geÃ§erli ve tek parÃ§a bir .glb dosyasÄ± olduÄŸundan emin olun.");
-        console.error("YÃ¼kleme HatasÄ±:", error);
+        showError("Model yüklenemedi. Lütfen geçerli ve tek parça bir .glb dosyası olduğundan emin olun.");
+        console.error("Model yükleme hatası:", error);
         return false;
     } finally {
         // Blob URL temizliÄŸi (sÄ±zÄ±ntÄ±yÄ± Ã¶nle)

@@ -122,7 +122,7 @@ function setupConfigPanel() {
             const type = target.dataset.type;
             const val = target.dataset.val;
             
-            // Eger kapak ('door') se�ildiyse, t�m kapak butonlarindaki active sinifini kaldir
+            // Kapak seçildiyse tüm kapak butonlarındaki active sınıfını kaldır.
             if (type === 'door') {
                 const allDoorBtns = document.querySelectorAll('.renk-btn[data-type="door"]');
                 allDoorBtns.forEach(b => b.classList.remove('active'));

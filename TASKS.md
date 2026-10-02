@@ -54,6 +54,7 @@
 - [x] Refactor lakeNoiseDokusuOlustur to return a cached deterministic DataTexture instead of unoptimized random CanvasTexture
 - [x] Prevent HDRI loading failure/delay from permanently blocking the viewer startup by making it strictly asynchronous (safely applied without breaking viewer.js)
 - [x] Restore heavily damaged viewer.js functions (updateDynamicLighting, updateCutaway) lost during PowerShell regex replacements
+- [x] Fix GLB load failure caused by the missing safeUpper import and repair affected user-facing Turkish loading/error strings
 - [ ] Migrate standalone integration to Kapak repository
 - [ ] Incorporate real 3D assets for Appliances (Oven, Hood, Sink) to replace CAD geometry Configurator UI.
 
